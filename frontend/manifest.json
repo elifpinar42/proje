@@ -1,0 +1,22 @@
+{
+  "short_name": "DijitalRehber",
+  "name": "AI Destekli Dijital İçerik Rehberlik ve Güvenlik Sistemi",
+  "description": "Çocuklar ve gençler için yapay zekâ destekli koruyucu dijital güvenlik ve rehberlik asistanı.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "display": "standalone",
+  "orientation": "portrait"
+}

@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <title>Dijital Rehberlik ve Güvenlik Sistemi</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.75);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --secondary: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --purple: #a855f7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 520px;
+            min-height: 92vh;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Top Header */
+        .app-header {
+            padding: 16px 20px;
+            background: rgba(15, 23, 42, 0.7);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .app-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-badge {
+            font-size: 0.75rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            font-weight: 600;
+        }
+
+        /* Main Content Views */
+        .content-body {
+            flex: 1;
+            padding: 18px;
+            overflow-y: auto;
+        }
+
+        .screen {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card Styles */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.65);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            transition: all 0.2s ease;
+        }
+
+        /* Live User Status Overview Card */
+        .status-summary-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .status-item {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .status-item-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .status-item-val {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Progress Bar */
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.4s ease, background-color 0.4s ease;
+        }
+
+        /* Live Camera Feed Container */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: #000;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #camera-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-overlay-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #10b981;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Filter Tabs & Prompt Chips */
+        .filter-tab {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .filter-tab.active, .filter-tab:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 10px var(--primary-glow);
+        }
+
+        .chip-btn {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chip-btn:hover {
+            background: rgba(99, 102, 241, 0.3);
+            color: white;
+        }
+
+
+        /* Emotion Chips for Live Testing */
+        .emotion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .emotion-chip {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .emotion-chip:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Emotion Percentages Breakdown (TÜM 7 DUYGU) */
+        .emotion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .emotion-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+        }
+
+        .emotion-name {
+            width: 95px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .emotion-bar-container {
+            flex: 1;
+        }
+
+        .emotion-percent {
+            width: 45px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        /* Inputs & Buttons */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .input-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .custom-input, .custom-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+
+        .link-btn {
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 10px;
+            text-decoration: underline;
+        }
+
+        /* Toggle Switches */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #334155;
+            transition: .3s;
+            border-radius: 26px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Bottom Nav Bar */
+        .app-nav {
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 100%;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        /* Guidance Overlay Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        /* IMPORTANT: hidden modals must never block pointer events */
+        .modal-overlay.hidden {
+            display: none !important;
+            pointer-events: none !important;
+        }
+
+        .guidance-card {
+            background: #1e293b;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            text-align: center;
+        }
+
+        .recommendation-box {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px dashed var(--primary);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            text-align: left;
+        }
+
+        .rec-tag {
+            font-size: 0.7rem;
+            background: var(--primary);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .report-item {
+            padding: 10px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .report-risk-high { border-left: 4px solid var(--danger); }
+        .report-risk-medium { border-left: 4px solid var(--warning); }
+        .report-risk-low { border-left: 4px solid var(--secondary); }
+
+        /* Voice Assistant Controls */
+        .voice-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .voice-btn:hover {
+            background: rgba(99, 102, 241, 0.3);
+            border-color: var(--primary);
+        }
+        .voice-btn.listening {
+            background: #ef4444 !important;
+            border-color: #f87171 !important;
+            color: white !important;
+            animation: pulseRecord 1s infinite;
+        }
+        @keyframes pulseRecord {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .voice-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #f87171;
+            font-weight: 600;
+            padding: 4px 8px;
+            background: rgba(239, 68, 68, 0.15);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            animation: fadeIn 0.2s ease;
+        }
+        .tts-speak-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-left: 6px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+        .tts-speak-btn:hover {
+            color: #a5b4fc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Top Header -->
+    <header class="app-header">
+        <div class="app-brand">
+            <div class="app-logo-icon">🛡️</div>
+            <div>
+                <div class="app-title">Dijital Rehber</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted);">Gelişmiş 7 Duygu Canlı İfade Analizörü</div>
+            </div>
+        </div>
+        <div id="user-role-badge" class="user-badge hidden">Çocuk Modu</div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="content-body">
+
+        <!-- 1. LOGIN SCREEN -->
+        <section id="screen-login" class="screen">
+            <div style="text-align: center; margin-bottom: 10px;">
+                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;">Hoş Geldiniz</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Bilinçli dijital rehberlik için giriş yapın</p>
+            </div>
+
+            <div class="glass-card">
+                <div class="input-group">
+                    <label class="input-label">Kullanıcı Adı</label>
+                    <input type="text" id="login-username" class="custom-input" placeholder="Kullanıcı adınız">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Şifre</label>
+                    <input type="password" id="login-password" class="custom-input" placeholder="••••••••">
+                </div>
+                <div id="2fa-input-container" class="input-group hidden" style="border-top: 1px dashed var(--primary); pt: 10px; margin-top: 10px;">
+                    <label class="input-label" style="color: #34d399;">🔑 2FA Doğrulama Kodu</label>
+                    <input type="text" id="login-2fa-code" class="custom-input" placeholder="6 haneli kod veya kurtarma kodu">
+                </div>
+                <button class="btn-primary" onclick="handleLogin()" style="margin-top: 10px;">Giriş Yap</button>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; padding: 0 4px;">
+                <span class="link-btn" onclick="showScreen('screen-register')">Kayıt Ol</span>
+                <span class="link-btn" onclick="showScreen('screen-reset')">Şifremi Unuttum</span>
+            </div>
+        </section>
+
+        <!-- 2. REGISTER SCREEN -->
+        <section id="screen-register" class="screen hidden">
+            <div style="text-align: center; margin-bottom: 10px;">
+                <h2 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 6px;">Yeni Kayıt</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Rolünüzü seçin ve devam edin</p>
+            </div>
+
+            <div class="glass-card">
+                <div class="input-group">
+                    <label class="input-label">Hesap Türü</label>
+                    <select id="reg-type" class="custom-select">
+                        <option value="child">Çocuk Kullanıcı (Rehber Modu)</option>
+                        <option value="parent">Ebeveyn Kullanıcı (Kontrol Paneli)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Kullanıcı Adı</label>
+                    <input type="text" id="reg-username" class="custom-input" placeholder="Kullanıcı adı">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Şifre</label>
+                    <input type="password" id="reg-password" class="custom-input" placeholder="Şifreniz">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Güvenlik Sorusu</label>
+                    <input type="text" id="reg-question" class="custom-input" placeholder="Örn: İlk evcil hayvanın?">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Cevap</label>
+                    <input type="text" id="reg-answer" class="custom-input" placeholder="Cevabınız">
+                </div>
+                <button class="btn-primary" onclick="handleRegister()" style="margin-top: 10px;">Kayıt Ol</button>
+            </div>
+            <span class="link-btn" onclick="showScreen('screen-login')">Zaten hesabın var mı? Giriş yap</span>
+        </section>
+
+        <!-- 3. RESET PASSWORD SCREEN -->
+        <section id="screen-reset" class="screen hidden">
+            <div style="text-align: center; margin-bottom: 10px;">
+                <h2 style="font-size: 1.4rem; font-weight: 700;">Şifre Sıfırlama</h2>
+            </div>
+            <div class="glass-card">
+                <div class="input-group">
+                    <label class="input-label">Kullanıcı Adı</label>
+                    <input type="text" id="reset-username" class="custom-input" placeholder="Kullanıcı adınız">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Güvenlik Sorusu</label>
+                    <input type="text" id="reset-question" class="custom-input" placeholder="Kayıttaki soru">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Cevap</label>
+                    <input type="text" id="reset-answer" class="custom-input" placeholder="Cevabınız">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Yeni Şifre</label>
+                    <input type="password" id="reset-newpassword" class="custom-input" placeholder="Yeni şifreniz">
+                </div>
+                <button class="btn-primary" onclick="handleResetPassword()" style="margin-top: 10px;">Şifreyi Güncelle</button>
+            </div>
+            <span class="link-btn" onclick="showScreen('screen-login')">Geri Dön</span>
+        </section>
+
+        <!-- 4. CHILD GUIDANCE DASHBOARD (CANLI ANALİZ VE TÜM 7 DUYGU YÜZDELERİ) -->
+        <section id="screen-child-dashboard" class="screen hidden">
+            
+            <!-- CANLI KULLANICI ANALİZİ VE SAĞLIK DURUM KARTI -->
+            <div class="status-summary-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">CANLI ANALİZ EDİLEN KULLANICI</div>
+                        <div id="live-user-name" style="font-size: 1.1rem; font-weight: 700; color: white;">Ahmet (Çocuk Modu)</div>
+                    </div>
+                    <div id="overall-health-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 0.85rem;">
+                        %95 GÜVENLİ
+                    </div>
+                </div>
+
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-item-label">🎭 Baskın Duygu</div>
+                        <div id="live-emotion-val" class="status-item-val">😐 Nötr (%65)</div>
+                        <div class="progress-bar-bg"><div id="bar-emotion" class="progress-bar-fill" style="width: 65%; background: var(--secondary);"></div></div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-item-label">🔊 Ses Seviyesi</div>
+                        <div id="live-audio-val" class="status-item-val">28 dB (Sessiz)</div>
+                        <div class="progress-bar-bg"><div id="bar-audio" class="progress-bar-fill" style="width: 25%; background: var(--secondary);"></div></div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-item-label">💻 Ekran İçeriği</div>
+                        <div id="live-screen-val" class="status-item-val">%98 Temiz</div>
+                        <div class="progress-bar-bg"><div id="bar-screen" class="progress-bar-fill" style="width: 98%; background: var(--secondary);"></div></div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-item-label">⌨️ Etkileşim Stresi</div>
+                        <div id="live-keyboard-val" class="status-item-val">%12 Normal</div>
+                        <div class="progress-bar-bg"><div id="bar-keyboard" class="progress-bar-fill" style="width: 12%; background: var(--secondary);"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CANLI KAMERA VİDEO VE TÜM 7 DUYGU ORANLARI PANENİ -->
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="font-size: 0.9rem; font-weight: 700;">📷 Canlı Kamera & 7 İfade Analizi</div>
+                    <button class="btn-secondary" onclick="toggleWebcamFeed()" style="width: auto; padding: 4px 10px; font-size: 0.75rem;">
+                        Kamerayı Başlat/Durdur
+                    </button>
+                </div>
+
+                <div class="camera-container">
+                    <video id="camera-video" autoplay playsinline muted></video>
+                    <div id="cam-live-indicator" class="camera-overlay-badge hidden">
+                        <span class="live-dot"></span> CANLI YÜZ ANALİZİ YAPILIYOR
+                    </div>
+                    <div id="cam-placeholder-text" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">
+                        📷 Kamera kapalı. Başlatmak için butona veya ebeveyn ayarlarına tıklayın.
+                    </div>
+                </div>
+
+                <!-- CANLI DUYGU SİMÜLE / TEST BUTONLARI (Kullanıcının anında test edebilmesi için) -->
+                <div style="margin-top: 10px;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">⚡ HIZLI DUYGU ANALİZİ TEST ET:</div>
+                    <div class="emotion-chips">
+                        <button class="emotion-chip" onclick="setTestEmotion('happy')">😃 Mutlu</button>
+                        <button class="emotion-chip" onclick="setTestEmotion('angry')">😠 Kızgın</button>
+                        <button class="emotion-chip" onclick="setTestEmotion('sad')">😢 Üzgün</button>
+                        <button class="emotion-chip" onclick="setTestEmotion('fearful')">😨 Korkmuş</button>
+                        <button class="emotion-chip" onclick="setTestEmotion('disgusted')">🤢 Tiksinmiş</button>
+                        <button class="emotion-chip" onclick="setTestEmotion('surprised')">😲 Şaşırmış</button>
+                        <button class="emotion-chip" onclick="setTestEmotion('neutral')">😐 Nötr</button>
+                    </div>
+                </div>
+
+                <!-- TÜM 7 DUYGU İFADESİ YÜZDELİK DAĞILIMI -->
+                <div style="margin-top: 14px; font-size: 0.85rem; font-weight: 700; color: #cbd5e1;">📊 TÜM 7 DUYGU CANLI ORANLARI:</div>
+                <div class="emotion-list">
+                    <!-- 1. NÖTR -->
+                    <div class="emotion-row">
+                        <span class="emotion-name">😐 Nötr</span>
+                        <div class="emotion-bar-container"><div class="progress-bar-bg"><div id="emo-bar-neutral" class="progress-bar-fill" style="width: 55%; background: var(--primary);"></div></div></div>
+                        <span id="emo-val-neutral" class="emotion-percent">%55</span>
+                    </div>
+                    <!-- 2. MUTLU -->
+                    <div class="emotion-row">
+                        <span class="emotion-name">😃 Mutlu</span>
+                        <div class="emotion-bar-container"><div class="progress-bar-bg"><div id="emo-bar-happy" class="progress-bar-fill" style="width: 18%; background: var(--secondary);"></div></div></div>
+                        <span id="emo-val-happy" class="emotion-percent">%18</span>
+                    </div>
+                    <!-- 3. ÜZGÜN -->
+                    <div class="emotion-row">
+                        <span class="emotion-name">😢 Üzgün</span>
+                        <div class="emotion-bar-container"><div class="progress-bar-bg"><div id="emo-bar-sad" class="progress-bar-fill" style="width: 8%; background: var(--info);"></div></div></div>
+                        <span id="emo-val-sad" class="emotion-percent">%8</span>
+                    </div>
+                    <!-- 4. KIZGIN -->
+                    <div class="emotion-row">
+                        <span class="emotion-name">😠 Kızgın</span>
+                        <div class="emotion-bar-container"><div class="progress-bar-bg"><div id="emo-bar-angry" class="progress-bar-fill" style="width: 6%; background: var(--danger);"></div></div></div>
+                        <span id="emo-val-angry" class="emotion-percent">%6</span>
+                    </div>
+                    <!-- 5. KORKMUŞ -->
+                    <div class="emotion-row">
+                        <span class="emotion-name">😨 Korkmuş</span>
+                        <div class="emotion-bar-container"><div class="progress-bar-bg"><div id="emo-bar-fearful" class="progress-bar-fill" style="width: 5%; background: var(--warning);"></div></div></div>
+                        <span id="emo-val-fearful" class="emotion-percent">%5</span>
+                    </div>
+                    <!-- 6. TİKSİNMİŞ -->
+                    <div class="emotion-row">
+                        <span class="emotion-name">🤢 Tiksinmiş</span>
+                        <div class="emotion-bar-container"><div class="progress-bar-bg"><div id="emo-bar-disgusted" class="progress-bar-fill" style="width: 4%; background: #84cc16;"></div></div></div>
+                        <span id="emo-val-disgusted" class="emotion-percent">%4</span>
+                    </div>
+                    <!-- 7. ŞAŞIRMIŞ -->
+                    <div class="emotion-row">
+                        <span class="emotion-name">😲 Şaşırmış</span>
+                        <div class="emotion-bar-container"><div class="progress-bar-bg"><div id="emo-bar-surprised" class="progress-bar-fill" style="width: 4%; background: var(--purple);"></div></div></div>
+                        <span id="emo-val-surprised" class="emotion-percent">%4</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CANLI SES DÜZEYİ VE SPEKTRUM GÖSTERGESİ -->
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="font-size: 0.9rem; font-weight: 700;">🎙️ Canlı Ses & Olumsuz Dil Analizörü</div>
+                    <span id="mic-status-label" style="font-size: 0.75rem; color: var(--secondary); font-weight: 600;">Dinleniyor (28 dB)</span>
+                </div>
+                <canvas id="audio-visualizer" width="440" height="40" style="width: 100%; height: 40px; background: rgba(15, 23, 42, 0.8); border-radius: 8px; border: 1px solid var(--border-color);"></canvas>
+            </div>
+
+            <!-- DİJİTAL FARKINDALIK VE CANLI REHBER YAPAY ZEKÂ CHATBOT (ChatGPT Tarzı) -->
+            <div class="glass-card" style="border-left: 4px solid var(--primary);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 24px;">🤖</span>
+                        <div>
+                            <div style="font-size: 0.95rem; font-weight: 700; color: white;">Yapay Zekâ Asistanı & Rehber</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Sohbet et, bilgi al, masal dinle ya da sesinle konuş!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Thread -->
+                <div id="child-ai-chat-thread" style="max-height: 220px; overflow-y: auto; background: rgba(15, 23, 42, 0.7); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
+                    <div style="background: rgba(99, 102, 241, 0.2); padding: 8px 12px; border-radius: 10px; font-size: 0.82rem; color: #e2e8f0; border: 1px solid rgba(99, 102, 241, 0.3);">
+                        🤖 Merhaba! Ben senin ChatGPT gibi konuşabilen Akıllı Asistanınım. Benimle dilediğin gibi sohbet edebilir, fen, uzay, matematik veya oyunlar hakkında sorular sorabilir ya da mikrofon butonuna basarak doğrudan konuşabilirsin! 🎙️
+                    </div>
+                </div>
+
+                <!-- Voice Listening Status Banner -->
+                <div id="voice-status-child" class="voice-live-badge hidden">
+                    <span>🔴</span> <span>Sesiniz dinleniyor, konuşabilirsiniz...</span>
+                </div>
+
+                <!-- Quick Prompt Chips -->
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
+                    <button class="chip-btn" onclick="askGuideAI('Güneş ve gezegenler hakkında bilgi verir misin?')">🪐 Uzay ve Gezegenler</button>
+                    <button class="chip-btn" onclick="askGuideAI('Bana eğlenceli bir masal anlat')">✨ Masal Anlat</button>
+                    <button class="chip-btn" onclick="askGuideAI('Bana bir bilmece sor')">🧩 Bilmece Sor</button>
+                    <button class="chip-btn" onclick="askGuideAI('150 çarpı 4 kaç eder?')">🧮 Matematik Çöz</button>
+                    <button class="chip-btn" onclick="askGuideAI('Biri benden fotoğraf veya şifre istedi, ne yapmalıyım?')">🛡️ Güvenlik Tavsiyesi</button>
+                </div>
+
+                <!-- Chat Input Row With Voice Mic Button -->
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="text" id="child-ai-input" placeholder="Bir şey sor veya mikrofonla konuş..." style="flex: 1; padding: 8px 12px; margin: 0; background: rgba(15, 23, 42, 0.9); color: white; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.85rem;" onkeypress="if(event.key === 'Enter') sendChildAIChat()">
+                    <button type="button" id="btn-voice-child" class="voice-btn" onclick="toggleVoiceRecognition('child-ai-input', 'btn-voice-child', 'voice-status-child')" title="Sesle Konuş (Mikrofon)">🎙️</button>
+                    <button onclick="sendChildAIChat()" style="width: auto; padding: 8px 16px; margin: 0; background: var(--primary); font-size: 0.85rem;">Gönder</button>
+                </div>
+            </div>
+
+            <button class="btn-secondary" onclick="simulateRiskAlert()">⚠️ Hassas İçerik Analiz Simülasyonu Test Et</button>
+        </section>
+
+        <!-- 5. PARENT DASHBOARD SCREEN -->
+        <section id="screen-parent-dashboard" class="screen hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 1.1rem; font-weight: 700;">⚙️ Ebeveyn Kontrol Paneli</div>
+                <button class="btn-primary" style="width: auto; padding: 6px 14px; font-size: 0.8rem; background: linear-gradient(135deg, #10b981, #059669);" onclick="downloadPDFReport()">📄 Rapor Oluştur (PDF İndir)</button>
+            </div>
+
+            <!-- EBEVEYN TARİH BAZLI GEÇMİŞ VE AKTİVİTE RAPORLARI -->
+            <div class="glass-card" style="border-top: 3px solid var(--primary);">
+                <div style="font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>📅 Çocuk Geçmişi / Aktivite Raporları</span>
+                    <span style="font-size: 0.75rem; color: var(--secondary); font-weight: 600;" id="history-count-badge">Kalıcı Veri Kaydı</span>
+                </div>
+
+                <!-- Date Range Filters -->
+                <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px;">
+                    <button class="filter-tab active" id="filter-btn-today" onclick="setHistoryFilter('today')">Bugün</button>
+                    <button class="filter-tab" id="filter-btn-yesterday" onclick="setHistoryFilter('yesterday')">Dün</button>
+                    <button class="filter-tab" id="filter-btn-7days" onclick="setHistoryFilter('7days')">Son 7 Gün</button>
+                    <button class="filter-tab" id="filter-btn-30days" onclick="setHistoryFilter('30days')">Son 30 Gün</button>
+                    <button class="filter-tab" id="filter-btn-all" onclick="setHistoryFilter('all')">Tüm Geçmiş</button>
+                </div>
+
+                <!-- Daily / Period Summary Metrics Box -->
+                <div id="parent-summary-box" style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid var(--border-color);">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: #a5b4fc; margin-bottom: 4px;" id="summary-title">📊 Dönem Kullanım Özeti</div>
+                    <div style="font-size: 0.8rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 4px;">
+                        <div>⏱️ Toplam Ekran Süresi: <strong id="summary-screentime">2 saat 40 dakika</strong></div>
+                        <div>🌐 En Çok Kullanılanlar: <strong id="summary-topapps">TÜBİTAK Bilim, Scratch MIT, TRT Çocuk</strong></div>
+                        <div>💡 AI Değerlendirmesi: <span id="summary-aieval" style="color: #64748b;">Yükleniyor...</span></div>
+                    </div>
+                </div>
+
+                <!-- History Events Container -->
+                <div id="parent-history-list" style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 12px;">Kalıcı geçmiş verileri yükleniyor...</div>
+                </div>
+
+                <!-- Non-Clinical Legal Disclaimer -->
+                <div style="font-size: 0.72rem; color: #fbbf24; background: rgba(245, 158, 11, 0.1); padding: 8px 10px; border-radius: 6px; margin-top: 10px; border: 1px solid rgba(245, 158, 11, 0.2);">
+                    ⚠️ <strong>Yasal & Etik Bilgilendirme:</strong> Bu sistemde sunulan tüm duygu ve davranış verileri cihaz içi gözlemsel tahminlerdir. Tıbbi veya psikolojik bir teşhis niteliği taşımaz.
+                </div>
+            </div>
+
+            <!-- EBEVEYN REHBER YAPAY ZEKÂ ASİSTANI MODÜLÜ -->
+            <div class="glass-card" style="border-left: 4px solid var(--secondary);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 24px;">👨‍👩‍👧</span>
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: 700; color: white;">Ebeveyn Rehber Yapay Zekâ Danışmanı</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Ekran süresi, çocuk psikolojisi, siber güvenlik ve rehberlik danışın.</div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Thread -->
+                <div id="parent-ai-chat-thread" style="max-height: 220px; overflow-y: auto; background: rgba(15, 23, 42, 0.7); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
+                    <div style="background: rgba(16, 185, 129, 0.15); padding: 8px 12px; border-radius: 10px; font-size: 0.82rem; color: #e2e8f0; border: 1px solid rgba(16, 185, 129, 0.3);">
+                        👨‍👩‍👧 Merhaba Sayın Ebeveyn! Çocuğunuzun ekran süresi yönetimi, dijital oyun seçimleri, siber zorbalık veya pedagojik rehberlik konularında sorular sorabilir, mikrofonla sesli danışabilirsiniz. 🎙️
+                    </div>
+                </div>
+
+                <!-- Voice Listening Status Banner -->
+                <div id="voice-status-parent" class="voice-live-badge hidden">
+                    <span>🔴</span> <span>Sesiniz dinleniyor, konuşabilirsiniz...</span>
+                </div>
+
+                <!-- Quick Prompt Chips -->
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
+                    <button class="chip-btn" onclick="askParentAI('Ekran süresi kısıtlamasını nasıl yapmalıyım?')">⏰ Ekran süresi yönetimi</button>
+                    <button class="chip-btn" onclick="askParentAI('Şiddet içeren oyunlar için ne yapmalıyım?')">🎮 Oyun ve şiddet rehberi</button>
+                    <button class="chip-btn" onclick="askParentAI('Siber zorbalıktan nasıl korurum?')">🛡️ Siber zorbalık desteği</button>
+                    <button class="chip-btn" onclick="askParentAI('Uyarılar çocuğumu tedirgin ediyor ne yapmalıyım?')">🌱 Tedirginlik önleme</button>
+                </div>
+
+                <!-- Chat Input Row With Voice Mic Button -->
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="text" id="parent-ai-input" placeholder="Ebeveyn danışmanına yaz veya sesle konuş..." style="flex: 1; padding: 8px 12px; margin: 0; background: rgba(15, 23, 42, 0.9); color: white; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.85rem;" onkeypress="if(event.key === 'Enter') sendParentAIChat()">
+                    <button type="button" id="btn-voice-parent" class="voice-btn" onclick="toggleVoiceRecognition('parent-ai-input', 'btn-voice-parent', 'voice-status-parent')" title="Sesle Konuş (Mikrofon)">🎙️</button>
+                    <button onclick="sendParentAIChat()" style="width: auto; padding: 8px 16px; margin: 0; background: var(--secondary); font-size: 0.85rem;">Gönder</button>
+                </div>
+            </div>
+
+            <!-- Sensitivity Level -->
+            <div class="glass-card">
+                <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 10px;">İçerik Filtreleme Hassasiyeti</div>
+                <div class="input-group">
+                    <select id="parent-sensitivity" class="custom-select" onchange="saveParentSettings()">
+                        <option value="low">Düşük Hassasiyet (Esnek)</option>
+                        <option value="medium" selected>Orta Hassasiyet (Dengeli - Önerilen)</option>
+                        <option value="high">Yüksek Hassasiyet (Koruyucu)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Privacy & Hardware Toggles -->
+            <div class="glass-card">
+                <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">Gizlilik & Analiz İzinleri (Etik)</div>
+                <div class="setting-row">
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 500;">📷 Canlı Kamera & 7 Duygu Analizi</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Kamera feed ve tüm duygu yüzdeleri</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-camera" onchange="saveParentSettings()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 500;">🎙️ Mikrofon / Ses Desibel Analizi</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Ses yüksekliği ve olumsuz dil takibi</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-mic" onchange="saveParentSettings()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 500;">💻 Ekran & İçerik Metin Analizi</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Pencere ve metin içerik kontrolü</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-screen" checked onchange="saveParentSettings()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 500;">⌨️ Etkileşim & Klavye Stresi</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Panik tıklama ve klavye hızı</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-keyboard" checked onchange="saveParentSettings()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav id="app-nav-bar" class="app-nav hidden">
+        <button id="nav-btn-home" class="nav-item active" onclick="switchTab('home')">
+            <span class="nav-icon">🛡️</span>
+            <span>Canlı Rehber</span>
+        </button>
+        <button id="nav-btn-parent" class="nav-item" onclick="switchTab('parent')">
+            <span class="nav-icon">⚙️</span>
+            <span>Ebeveyn</span>
+        </button>
+        <button class="nav-item" onclick="handleLogout()">
+            <span class="nav-icon">🚪</span>
+            <span>Çıkış</span>
+        </button>
+    </nav>
+
+    <!-- GUIDANCE OVERLAY MODAL -->
+    <div id="guidance-modal" class="modal-overlay hidden">
+        <div class="guidance-card">
+            <div style="font-size: 44px;">🤖</div>
+            <div style="font-size: 1.2rem; font-weight: 700; color: white;">Dijital Rehberinizden Uyarı</div>
+            <div id="guidance-text" style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.4;">
+                İncelediğiniz içerikte hassas veya olumsuz unsurlar bulunabilir. Sağlıklı dijital alışkanlıklar için mola vermek ister misiniz?
+            </div>
+
+            <!-- Educational Recommendation Box -->
+            <div id="guidance-recommendation" class="recommendation-box">
+                <span class="rec-tag">ÖNERİLEN EĞİTİCİ İÇERİK</span>
+                <div class="rec-title">TÜBİTAK Bilim Çocuk Digital</div>
+                <div class="rec-desc">Eğlenceli ve güvenli bilimsel videoları keşfedin.</div>
+            </div>
+
+            <!-- Choice Buttons -->
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+                <button class="btn-primary" onclick="acceptRecommendation()" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    🌱 Eğitici Alternatife Git
+                </button>
+                <button class="btn-secondary" onclick="continueContent()">
+                    İçeriğe Devam Et (Ebeveyn Bildirimli)
+                </button>
+                <button class="btn-secondary" onclick="closeGuidanceModal()" style="border: none; color: var(--text-muted);">
+                    Kapat / Geri Dön
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Application JS -->
+<script src="app.js"></script>
+</body>
+</html>

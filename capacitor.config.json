@@ -1,0 +1,15 @@
+{
+  "appId": "com.pinar.dijitalrehberlik",
+  "appName": "Dijital İçerik Rehberlik ve Güvenlik Sistemi",
+  "webDir": "frontend",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#0f172a"
+    }
+  }
+}

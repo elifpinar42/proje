@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.local
+*.log
+backend/data/*.json
+!backend/data/.gitkeep
+dist/
+.DS_Store
