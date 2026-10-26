@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { EMOTIONS, EMOTION_LABELS } from '@dr/shared';
 import type { AppState, Guidance } from '../../common/types';
-import { requestMediaAccess, startCamera, startMic, type AccessResult, type Stopper } from './vision';
+import { mediaErrorText, requestMediaAccess, startCamera, startMic, type AccessResult, type Stopper } from './vision';
 
 const EMOJI: Record<string, string> = {
   neutral: '😐',
@@ -202,42 +202,69 @@ function Consent({ state }: { state: AppState }) {
 
 function Running({ state }: { state: AppState }) {
   const [tab, setTab] = useState<'status' | 'chat'>('status');
-  const [sensorError, setSensorError] = useState('');
+  const [camError, setCamError] = useState('');
+  const [micError, setMicError] = useState('');
   const s = state.settings;
 
   // Kamera ve mikrofon yalnızca ebeveyn izin verdiğinde açılır.
   const cameraOn = !!s?.cameraEnabled;
   const micOn = !!s?.micEnabled;
+  // Kamera/mikrofon başka uygulamada kullanılıyorsa 10 sn'de bir otomatik tekrar denenir.
   useEffect(() => {
-    if (!cameraOn) return;
+    if (!cameraOn) {
+      setCamError('');
+      return;
+    }
     let stopper: Stopper | null = null;
     let cancelled = false;
-    startCamera((r) => window.agent.sendEmotion(r))
-      .then((st) => {
-        if (cancelled) st.stop();
-        else {
-          stopper = st;
-          setSensorError('');
-        }
-      })
-      .catch(() => setSensorError('Kamera açılamadı. Windows’ta kamera iznini kontrol edin.'));
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const attempt = () => {
+      startCamera((r) => window.agent.sendEmotion(r))
+        .then((st) => {
+          if (cancelled) st.stop();
+          else {
+            stopper = st;
+            setCamError('');
+          }
+        })
+        .catch((e) => {
+          setCamError(mediaErrorText(e, 'Kamera'));
+          if (!cancelled) timer = setTimeout(attempt, 10_000);
+        });
+    };
+    attempt();
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
       stopper?.stop();
     };
   }, [cameraOn]);
   useEffect(() => {
-    if (!micOn) return;
+    if (!micOn) {
+      setMicError('');
+      return;
+    }
     let stopper: Stopper | null = null;
     let cancelled = false;
-    startMic((level) => window.agent.sendAudioLevel(level))
-      .then((st) => {
-        if (cancelled) st.stop();
-        else stopper = st;
-      })
-      .catch(() => setSensorError('Mikrofon açılamadı. Windows’ta mikrofon iznini kontrol edin.'));
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const attempt = () => {
+      startMic((level) => window.agent.sendAudioLevel(level))
+        .then((st) => {
+          if (cancelled) st.stop();
+          else {
+            stopper = st;
+            setMicError('');
+          }
+        })
+        .catch((e) => {
+          setMicError(mediaErrorText(e, 'Mikrofon'));
+          if (!cancelled) timer = setTimeout(attempt, 10_000);
+        });
+    };
+    attempt();
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
       stopper?.stop();
     };
   }, [micOn]);
@@ -273,9 +300,10 @@ function Running({ state }: { state: AppState }) {
         </div>
       )}
 
-      {sensorError && (
+      {(camError || micError) && (
         <div className="alert error stack">
-          {sensorError}
+          {camError && <div>{camError}</div>}
+          {micError && <div>{micError}</div>}
           <div className="row">
             <button className="btn ghost small" onClick={() => void window.agent.openPrivacy('camera')}>
               Kamera ayarlarını aç

@@ -10,3 +10,6 @@
 
 ## Düzeltmeler
 - **Kamera/mikrofon izni:** izin denetimi `webContents` null geldiğinde reddediyordu; artık kaynak adresine (file:// / geliştirme sunucusu) bakılıyor. İzinler ilk açılışta (rıza ekranında) “İzinleri ver ve başlat” ile isteniyor; hata olursa Windows gizlilik ayarları düğmeleri çıkıyor. Kamera başka uygulamada açıksa (ör. Zoom) “Cihaz başka bir uygulama tarafından kullanılıyor” denir.
+| 21:03 | Gizlilik ekranı açık ama uygulama “izin verilmedi” diyordu. Kurulu sürümle denendi: mikrofon OK, kamera `NotReadableError: Device in use` (Windows “Kamera” uygulaması kamerayı kullanıyordu). Sorun izin değil, cihaz meşgul; mesaj yanıltıcıydı | DÜZELTİLDİ |
+
+- **Kamera/mikrofon hata mesajları** artık gerçek nedeni söylüyor (meşgul / bulunamadı / izin yok) ve ayrı ayrı gösteriliyor; meşgulse 10 sn’de bir otomatik tekrar deniyor.

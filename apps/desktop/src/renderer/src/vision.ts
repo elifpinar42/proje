@@ -122,23 +122,29 @@ export interface AccessResult {
   mic: string | null;
 }
 
-async function probe(constraints: MediaStreamConstraints): Promise<string | null> {
+async function probe(constraints: MediaStreamConstraints, device: 'Kamera' | 'Mikrofon'): Promise<string | null> {
   try {
     const s = await navigator.mediaDevices.getUserMedia(constraints);
     s.getTracks().forEach((t) => t.stop());
     return null;
   } catch (e) {
-    const name = (e as DOMException).name;
-    if (name === 'NotFoundError') return 'Cihaz bulunamadı.';
-    if (name === 'NotReadableError') return 'Cihaz başka bir uygulama tarafından kullanılıyor.';
-    return 'İzin verilmedi.';
+    return mediaErrorText(e, device);
   }
 }
 
 /** Kurulumun başında kamera/mikrofon erişimini dener; hata metnini (veya null) döner. */
 export async function requestMediaAccess(wantCamera: boolean, wantMic: boolean): Promise<AccessResult> {
   return {
-    camera: wantCamera ? await probe({ video: true }) : null,
-    mic: wantMic ? await probe({ audio: true }) : null,
+    camera: wantCamera ? await probe({ video: true }, 'Kamera') : null,
+    mic: wantMic ? await probe({ audio: true }, 'Mikrofon') : null,
   };
+}
+
+/** Tarayıcı hata adını kullanıcıya anlaşılır metne çevirir. */
+export function mediaErrorText(e: unknown, device: 'Kamera' | 'Mikrofon'): string {
+  const name = (e as DOMException)?.name;
+  if (name === 'NotReadableError') return `${device} başka bir uygulama tarafından kullanılıyor (ör. Windows Kamera, Zoom, Teams). O uygulamayı kapatın; otomatik tekrar denenecek.`;
+  if (name === 'NotFoundError') return `${device} bulunamadı.`;
+  if (name === 'NotAllowedError') return `${device} izni verilmedi. Windows Ayarları → Gizlilik bölümünden izin verin.`;
+  return `${device} açılamadı${name ? ` (${name})` : ''}.`;
 }
