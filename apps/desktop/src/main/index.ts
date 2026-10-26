@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, Notification, session, shell, Tray, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, Notification, session, shell, systemPreferences, Tray, nativeImage } from 'electron';
 import type { IpcMainInvokeEvent } from 'electron';
 import { existsSync } from 'node:fs';
 import { networkInterfaces } from 'node:os';
@@ -277,6 +277,23 @@ function registerIpc(): void {
     return agent.chat(msg, hist);
   });
 
+  ipcMain.handle('agent:mediaStatus', (e) => {
+    if (!fromRenderer(e)) return null;
+    const get = (t: 'camera' | 'microphone') => {
+      try {
+        return systemPreferences.getMediaAccessStatus(t);
+      } catch {
+        return 'unknown';
+      }
+    };
+    return { camera: get('camera'), microphone: get('microphone') };
+  });
+
+  ipcMain.handle('agent:openPrivacy', async (e, kind: 'camera' | 'microphone') => {
+    if (!fromRenderer(e)) return;
+    await shell.openExternal(kind === 'microphone' ? 'ms-settings:privacy-microphone' : 'ms-settings:privacy-webcam');
+  });
+
   ipcMain.handle('agent:openPanel', (e) => (fromRenderer(e) ? openPanel() : undefined));
 
   ipcMain.handle('agent:setAutostart', (e, enabled: boolean) => {
@@ -300,11 +317,15 @@ function registerIpc(): void {
 
 function lockDownSession(): void {
   const ses = session.defaultSession;
-  // Yalnızca kendi arayüzümüz kamera/mikrofon isteyebilir.
-  ses.setPermissionRequestHandler((wc, permission, cb) => {
-    cb(permission === 'media' && !!mainWindow && wc === mainWindow.webContents);
+  // Yalnızca kendi arayüzümüz (file:// veya geliştirme sunucusu) kamera/mikrofon isteyebilir.
+  const ownOrigin = (origin?: string) =>
+    !!origin && (origin.startsWith('file://') || (!!process.env['ELECTRON_RENDERER_URL'] && origin.startsWith(new URL(process.env['ELECTRON_RENDERER_URL']).origin)));
+  ses.setPermissionRequestHandler((wc, permission, cb, details) => {
+    const url = (details as { requestingUrl?: string }).requestingUrl;
+    cb(permission === 'media' && (wc === mainWindow?.webContents || ownOrigin(url)));
   });
-  ses.setPermissionCheckHandler((wc, permission) => permission === 'media' && !!mainWindow && wc === mainWindow.webContents);
+  // Not: webContents bu denetimde null gelebilir; kaynak adresine bakılır.
+  ses.setPermissionCheckHandler((_wc, permission, requestingOrigin) => permission === 'media' && ownOrigin(requestingOrigin));
 }
 
 /* ---- Başlangıç ---- */

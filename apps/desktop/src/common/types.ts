@@ -58,6 +58,8 @@ export interface AgentApi {
   sendEmotion(p: EmotionPayload): void;
   sendAudioLevel(level: number): void;
   chat(message: string, history: { role: 'user' | 'assistant'; content: string }[]): Promise<ChatResult>;
+  mediaStatus(): Promise<{ camera: string; microphone: string } | null>;
+  openPrivacy(kind: 'camera' | 'microphone'): Promise<void>;
   openPanel(): Promise<void>;
   setAutostart(enabled: boolean): Promise<void>;
   setLanAccess(enabled: boolean): Promise<void>;

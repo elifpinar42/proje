@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { EMOTIONS, EMOTION_LABELS } from '@dr/shared';
 import type { AppState, Guidance } from '../../common/types';
-import { startCamera, startMic, type Stopper } from './vision';
+import { requestMediaAccess, startCamera, startMic, type AccessResult, type Stopper } from './vision';
 
 const EMOJI: Record<string, string> = {
   neutral: '😐',
@@ -130,6 +130,17 @@ function Setup({ state }: { state: AppState }) {
 
 function Consent({ state }: { state: AppState }) {
   const s = state.settings;
+  const [access, setAccess] = useState<AccessResult | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  // Kamera/mikrofon izni en başta, ilk açılışta alınır.
+  async function start() {
+    setChecking(true);
+    const res = await requestMediaAccess(!!s?.cameraEnabled, !!s?.micEnabled);
+    setChecking(false);
+    setAccess(res);
+    if (!res.camera && !res.mic) await window.agent.acceptConsent();
+  }
   const items: [boolean | undefined, string][] = [
     [true, 'Bilgisayarı ne kadar süre kullandığın (yalnızca süre).'],
     [s?.screenEnabled, 'Açık pencerenin başlığı (kumar, şiddet gibi uygunsuz içerik var mı diye bakılır). Ekran görüntüsü alınmaz.'],
@@ -152,9 +163,37 @@ function Consent({ state }: { state: AppState }) {
         Tehlikeli bir durum olursa anne veya baban bilgilendirilir. Şifrelerin, mesajların ve yazdıkların kaydedilmez. İstediğin zaman anne babana
         sorabilirsin.
       </p>
-      <button className="btn" onClick={() => void window.agent.acceptConsent()}>
-        Anladım, başlat
-      </button>
+      {access && (access.camera || access.mic) && (
+        <div className="alert error stack">
+          {access.camera && <div>Kamera: {access.camera}</div>}
+          {access.mic && <div>Mikrofon: {access.mic}</div>}
+          <div className="small">
+            Windows Ayarları → Gizlilik’te “Masaüstü uygulamalarının kameranıza/mikrofonunuza erişmesine izin ver” seçeneğini açın, sonra tekrar deneyin.
+          </div>
+          <div className="row">
+            {access.camera && (
+              <button className="btn ghost small" onClick={() => void window.agent.openPrivacy('camera')}>
+                Kamera ayarlarını aç
+              </button>
+            )}
+            {access.mic && (
+              <button className="btn ghost small" onClick={() => void window.agent.openPrivacy('microphone')}>
+                Mikrofon ayarlarını aç
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+      <div className="row">
+        <button className="btn" disabled={checking} onClick={start}>
+          {checking ? 'İzinler kontrol ediliyor…' : access && (access.camera || access.mic) ? 'Tekrar dene' : 'İzinleri ver ve başlat'}
+        </button>
+        {access && (access.camera || access.mic) && (
+          <button className="btn ghost" onClick={() => void window.agent.acceptConsent()}>
+            İzinsiz devam et
+          </button>
+        )}
+      </div>
     </main>
   );
 }
@@ -234,7 +273,19 @@ function Running({ state }: { state: AppState }) {
         </div>
       )}
 
-      {sensorError && <div className="alert error">{sensorError}</div>}
+      {sensorError && (
+        <div className="alert error stack">
+          {sensorError}
+          <div className="row">
+            <button className="btn ghost small" onClick={() => void window.agent.openPrivacy('camera')}>
+              Kamera ayarlarını aç
+            </button>
+            <button className="btn ghost small" onClick={() => void window.agent.openPrivacy('microphone')}>
+              Mikrofon ayarlarını aç
+            </button>
+          </div>
+        </div>
+      )}
 
       {tab === 'chat' && state.aiEnabled ? (
         <Chat />

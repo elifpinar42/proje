@@ -116,3 +116,29 @@ export async function startMic(onLevel: (level: number) => void): Promise<Stoppe
     },
   };
 }
+
+export interface AccessResult {
+  camera: string | null;
+  mic: string | null;
+}
+
+async function probe(constraints: MediaStreamConstraints): Promise<string | null> {
+  try {
+    const s = await navigator.mediaDevices.getUserMedia(constraints);
+    s.getTracks().forEach((t) => t.stop());
+    return null;
+  } catch (e) {
+    const name = (e as DOMException).name;
+    if (name === 'NotFoundError') return 'Cihaz bulunamadı.';
+    if (name === 'NotReadableError') return 'Cihaz başka bir uygulama tarafından kullanılıyor.';
+    return 'İzin verilmedi.';
+  }
+}
+
+/** Kurulumun başında kamera/mikrofon erişimini dener; hata metnini (veya null) döner. */
+export async function requestMediaAccess(wantCamera: boolean, wantMic: boolean): Promise<AccessResult> {
+  return {
+    camera: wantCamera ? await probe({ video: true }) : null,
+    mic: wantMic ? await probe({ audio: true }) : null,
+  };
+}
