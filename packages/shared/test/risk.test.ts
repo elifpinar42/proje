@@ -21,7 +21,7 @@ describe('risk motoru', () => {
   it('puanlar ağırlıklara göre toplanır ve 100 ile sınırlanır', () => {
     const s = { ...EMPTY_RISK_STATE, windowRisk: 85, audioRisk: 85, emotion: 'angry' as const, keyboardRisk: 100 };
     expect(computeRisk(s)).toBe(Math.min(100, Math.round(50 + 22.5 + 25 + 15)));
-    expect(computeRisk({ ...EMPTY_RISK_STATE, windowRisk: 85 })).toBe(Math.round(51));
+    expect(computeRisk({ ...EMPTY_RISK_STATE, windowRisk: 85 })).toBe(50);
   });
 
   it('hassasiyet ayarı gerçekten uygulanır', () => {
