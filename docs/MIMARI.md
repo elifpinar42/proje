@@ -61,7 +61,7 @@ Her sinyal 0–100 aralığında ham risk üretir (`packages/shared/src/risk.ts`
 
 | Sinyal | Ham risk |
 |---|---|
-| Pencere başlığı | yüksek riskli kelime (kumar, bahis, casino, …) → 85; orta riskli (bıçak, kavga, …) → 45 |
+| Pencere başlığı | **tüm açık pencerelerin** başlıkları 1,5 sn’de bir taranır; en riskli olan alınır. Yüksek riskli kelime (kumar, bahis, iddaa, casino, intihar, kendine zarar, uyuşturucu, …) → 85; orta riskli (bıçak, kavga, şiddet, silah, …) → 45 |
 | Klavye | son 5 sn’deki tuş sayısı / 25 × 80 (en çok 100) |
 | Ses | seviye > 80 → 85; > 65 → 45 (seviye: −60…0 dBFS → 0…100, 10 örnek hareketli ortalama) |
 | Duygu | kararlı (son 5 ölçümde çoğunluk) duygu etiketi |
@@ -74,6 +74,7 @@ skor =  min(50, pencere × 0,6)
       + (öfke 25 | korku 20 | üzüntü 15)
       + (klavye > 50 ? min(15, (klavye − 50) × 0,3) : 0)
 nihai = yuvarla(skor × hassasiyet çarpanı)   // sınır: 0–100
+nihai = en az 75, eğer pencere riski ≥ 80 ise  // yüksek riskli içerik hassasiyetten bağımsız olay üretir
 ```
 
 | Hassasiyet | Çarpan | Olay eşiği |
@@ -82,7 +83,7 @@ nihai = yuvarla(skor × hassasiyet çarpanı)   // sınır: 0–100
 | Orta | 1,0 | 60 |
 | Yüksek | 1,2 | 50 |
 
-- **Olay:** puan ≥ eşik ve son olaydan ≥ 60 sn → sunucuya olay (ebeveyn bildirimi açıksa).
+- **Olay:** puan ≥ eşik → sunucuya olay (ebeveyn bildirimi açıksa). Aynı durum için 60 sn beklenir; farklı bir riskli pencere açılırsa en fazla 5 sn sonra yeni olay gönderilir.
 - **Rehberlik penceresi:** puan ≥ 75 ve son rehberlikten ≥ 120 sn → çocuk ekranında mola önerisi.
 
 ## Veritabanı

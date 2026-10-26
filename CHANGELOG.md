@@ -1,5 +1,13 @@
 # Değişiklik günlüğü
 
+## 2.0.3
+
+- Pencere izleme artık yalnızca aktif pencereye değil **tüm açık pencerelere** bakıyor ve 1,5 sn’de bir tarıyor (önceden 4 sn).
+- Kelime listesi genişledi: intihar, kendine zarar, uyuşturucu, iddaa vb.
+- Yüksek riskli içerik tek başına olay üretiyor (önceden 50 puanda kalıp eşiğin altında kalıyordu).
+- Farklı bir riskli pencere açılınca 60 sn beklenmeden en geç 5 sn içinde bildiriliyor.
+- Çocuk ekranında ebeveyn paneli adresleri (yerel + ağ) gösteriliyor.
+
 ## 2.0.2
 
 - Ebeveyn panelinde her ekran boyutunda yan menü (mobilde açılır çekmece); alt menü kaldırıldı.

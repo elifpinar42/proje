@@ -143,7 +143,7 @@ function Consent({ state }: { state: AppState }) {
   }
   const items: [boolean | undefined, string][] = [
     [true, 'Bilgisayarı ne kadar süre kullandığın (yalnızca süre).'],
-    [s?.screenEnabled, 'Açık pencerenin başlığı (kumar, şiddet gibi uygunsuz içerik var mı diye bakılır). Ekran görüntüsü alınmaz.'],
+    [s?.screenEnabled, 'Açık pencerelerinin başlıkları (kumar, şiddet, kendine zarar gibi uygunsuz içerik var mı diye bakılır). Ekran görüntüsü alınmaz.'],
     [s?.keyboardEnabled, 'Ne kadar hızlı tuşladığın. Yazdığın harfler kaydedilmez.'],
     [s?.cameraEnabled, 'Kameradan yüz ifaden (mutlu, üzgün gibi). Görüntü bilgisayarından çıkmaz.'],
     [s?.micEnabled, 'Mikrofondan ortamın ses yüksekliği. Ses kaydedilmez.'],
@@ -349,6 +349,19 @@ function Running({ state }: { state: AppState }) {
                   </div>
                 ))
               )}
+            </section>
+          )}
+
+          {state.serverMode === 'embedded' && state.panelUrls.length > 0 && (
+            <section className="card stack" aria-label="Ebeveyn paneli adresleri">
+              <h2>Ebeveyn paneli</h2>
+              <p className="muted small">Anne veya baban panele bu adreslerden girer (aynı Wi-Fi ağındaki telefonlar dahil):</p>
+              {state.panelUrls.map((u) => (
+                <code key={u}>{u}</code>
+              ))}
+              <button className="btn ghost small" style={{ alignSelf: 'flex-start' }} onClick={() => void window.agent.openPanel()}>
+                Paneli aç
+              </button>
             </section>
           )}
 

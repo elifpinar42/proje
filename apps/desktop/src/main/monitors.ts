@@ -1,15 +1,19 @@
-import { windowRiskFromTitle } from '@dr/shared';
+import { riskiestWindow } from '@dr/shared';
 
-/** Aktif pencere başlığını okur (active-win). Başlık metni cihazdan yalnızca risk olayında gönderilir. */
+/**
+ * Tüm açık pencerelerin başlığını okur (active-win) ve en riskli olanı bildirir.
+ * Başlıklar cihazdan çıkmaz; yalnızca riskli bulunan başlık, ebeveyn izin verdiyse gönderilir.
+ */
 export class WindowMonitor {
   private timer: NodeJS.Timeout | null = null;
   private lastKey = '';
+  private busy = false;
 
   constructor(private onChange: (title: string, risk: number) => void) {}
 
   start(): void {
     if (this.timer) return;
-    this.timer = setInterval(() => void this.tick(), 4000);
+    this.timer = setInterval(() => void this.tick(), 1500);
     void this.tick();
   }
 
@@ -21,19 +25,30 @@ export class WindowMonitor {
   }
 
   private async tick(): Promise<void> {
+    if (this.busy) return;
+    this.busy = true;
     try {
       const mod = await import('active-win');
-      const activeWindow = (mod.default ?? mod) as unknown as () => Promise<{ title?: string; owner?: { name?: string } } | undefined>;
-      const win = await activeWindow();
-      if (!win) return;
-      const title = win.title ?? '';
-      const owner = win.owner?.name ?? '';
-      const key = `${title}|${owner}`;
+      type Win = { title?: string; owner?: { name?: string } };
+      const aw = (mod.default ?? mod) as unknown as {
+        (): Promise<Win | undefined>;
+        getOpenWindows?: () => Promise<Win[]>;
+      };
+      const [active, open] = await Promise.all([aw(), aw.getOpenWindows ? aw.getOpenWindows() : Promise.resolve([] as Win[])]);
+      const all = [...(active ? [active] : []), ...open]
+        .map((w) => ({ title: w.title ?? '', owner: w.owner?.name ?? '' }))
+        .filter((w) => w.title || w.owner);
+      const worst = riskiestWindow(all);
+      // Risk yoksa ekranda görünen (aktif) pencere başlığı gösterilir.
+      const title = worst.risk > 0 ? worst.title : active?.title || active?.owner?.name || '';
+      const key = `${title}|${worst.risk}`;
       if (key === this.lastKey) return;
       this.lastKey = key;
-      this.onChange(title || owner, windowRiskFromTitle(title, owner));
+      this.onChange(title, worst.risk);
     } catch {
       /* pencere bilgisi alınamadı; sessizce geç */
+    } finally {
+      this.busy = false;
     }
   }
 }

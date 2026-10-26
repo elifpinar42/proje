@@ -65,7 +65,7 @@ export function createServer(options: ServerOptions): RunningServer {
   app.use(cookieParser());
 
   app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', version: '2.0.2', time: Date.now() });
+    res.json({ status: 'ok', version: '2.0.3', time: Date.now() });
   });
   app.use('/api/auth', authRoutes(ctx));
   app.use('/api/agent', agentRoutes(ctx));

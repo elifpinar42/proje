@@ -7,7 +7,7 @@ import { Alert, ChildPicker, NoChild, PageHeader, errMsg } from '../ui';
 type BoolKey = 'screenEnabled' | 'keyboardEnabled' | 'cameraEnabled' | 'micEnabled' | 'notifyParentOnRisk' | 'autostart';
 
 const TOGGLES: { key: BoolKey; title: string; text: string }[] = [
-  { key: 'screenEnabled', title: 'Pencere / ekran başlığı izleme', text: 'Açık pencerenin başlığına bakar; sakıncalı kelimeler (ör. kumar, bahis) geçerse risk puanını yükseltir. Ekran görüntüsü alınmaz.' },
+  { key: 'screenEnabled', title: 'Pencere / ekran başlığı izleme', text: 'Açık tüm pencerelerin başlığına bakar (tarayıcıda her pencerenin görünen sekmesi); sakıncalı kelimeler (kumar, bahis, intihar, uyuşturucu vb.) geçerse risk yükselir ve olay anında kaydedilir. Ekran görüntüsü alınmaz; yalnızca riskli başlık gönderilir.' },
   { key: 'keyboardEnabled', title: 'Klavye hızı izleme', text: 'Yalnızca tuşlama hızını ölçer (panik/öfke tespiti). Yazılan harfler kaydedilmez ve gönderilmez.' },
   { key: 'cameraEnabled', title: 'Kamera ile duygu analizi', text: 'Kamera görüntüsü cihaz üzerinde işlenir ve cihazdan çıkmaz; yalnızca duygu etiketi (ör. “üzgün”) gönderilir.' },
   { key: 'micEnabled', title: 'Mikrofon ile ortam sesi seviyesi', text: 'Yalnızca göreli ses yüksekliği ölçülür. Ses kaydedilmez ve gönderilmez.' },

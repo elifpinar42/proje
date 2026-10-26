@@ -55,6 +55,7 @@ export class Agent extends EventEmitter<AgentEvents> {
   private audioLevel = 0;
   private lastError = '';
   private lastAlert = 0;
+  private lastAlertKey = '';
   private lastGuidance = 0;
   private running = false;
   private hbTimer: NodeJS.Timeout | null = null;
@@ -120,6 +121,8 @@ export class Agent extends EventEmitter<AgentEvents> {
     const cfg = this.store.get();
     if (this.running || !cfg.deviceToken || !cfg.consentAccepted) return;
     this.running = true;
+    // Eşleşmede alınan ayarlar yalnızca gösterim içindi; izleme modülleri ilk ayar uygulamasında başlamalı.
+    this.settings = null;
     void this.pollSettings();
     this.setTimer = setInterval(() => void this.pollSettings(), SETTINGS_POLL_MS);
     this.hbTimer = setInterval(() => void this.heartbeat(), HEARTBEAT_MS);
@@ -299,8 +302,12 @@ export class Agent extends EventEmitter<AgentEvents> {
     const now = Date.now();
     const threshold = SENSITIVITY_PROFILE[sens].eventThreshold;
 
-    if (this.running && this.risk >= threshold && now - this.lastAlert > ALERT_COOLDOWN_MS) {
+    // Aynı durum için 60 sn bekleme; farklı bir riskli pencere/duygu ise (en fazla 5 sn arayla) hemen bildirilir.
+    const alertKey = `${this.riskState.windowTitle}|${this.riskState.emotion}`;
+    const wait = alertKey === this.lastAlertKey ? ALERT_COOLDOWN_MS : 5_000;
+    if (this.running && this.risk >= threshold && now - this.lastAlert > wait) {
       this.lastAlert = now;
+      this.lastAlertKey = alertKey;
       if (this.settings?.notifyParentOnRisk) {
         const event: AgentEvent = {
           occurredAt: now,

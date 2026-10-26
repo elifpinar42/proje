@@ -17,3 +17,6 @@
 | 21:10 | Windows kamera izin listesinde iki “Dijital Rehberlik” vardı: biri kurulu uygulama, diğeri benim derleme doğrulamasında çalıştırdığım `release\win-unpacked` kopyası (ayrı yol = ayrı kayıt). Hata değil | AÇIKLANDI |
 | 21:15 | İstek: her ekranda yan menü (alt menü yok); çocuk uygulamasında ayar olmasın; yerel sunucu hep ağa açık; eşleşmeyi kaldırmak için ebeveyn kodu | UYGULANDI (2.0.2) |
 | 21:20 | Sunucu `index.html`'i 1 saat önbelleğe aldırıyordu → güncellemeden sonra eski panel görünüyordu | DÜZELTİLDİ (2.0.2: index.html no-cache) |
+| 21:25 | Kullanıcı “intihar” başlıklı sekme açtı, hiçbir şey olmadı. Nedenleri: (1) pencere kelime listesinde “intihar/kendine zarar” yok (yalnızca sohbet filtresinde var, sohbet de AI kapalıyken görünmüyor); (2) yüksek riskli pencere tek başına en fazla 50 puan veriyor, orta hassasiyette olay eşiği 60 → “bahis/kumar” sekmesi de tek başına olay üretmiyor (dokümandaki “≥%60” iddiası yanlıştı) | DÜZELTİLECEK |
+| 21:35 | “Neden anlık değil / tüm pencerelere baksın / çocuk ekranında panel adresleri” | DÜZELTİLDİ (2.0.3) |
+| 21:40 | **Önemli hata:** eşleştirme sonrası uygulama yeniden başlatılmadıkça pencere/klavye izleme modülleri hiç başlamıyordu (eşleşmede alınan ayarlar “önceki ayar” sayılıyordu) | DÜZELTİLDİ (2.0.3) |

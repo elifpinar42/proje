@@ -7,7 +7,7 @@
 | Kamera görüntüsü | Yalnızca bellekte işlenir | **Hayır** | Yüz analizi cihazda (face-api, WebGL); yalnızca duygu etiketi ve yüzdeler çıkar |
 | Mikrofon sesi | Yalnızca bellekte işlenir | **Hayır** | Sadece göreli ses seviyesi (0–100) ölçülür, kaydedilmez |
 | Basılan tuşlar | Sayılır | **Hayır** | Yalnızca “5 sn’de kaç tuş” sayısı; hangi tuş olduğu kaydedilmez |
-| Aktif pencere başlığı | Okunur | Evet — yalnızca ebeveyn “Pencere izleme”yi açtıysa | Ekran görüntüsü alınmaz |
+| Açık pencerelerin başlıkları | Hepsi yerelde okunur | Yalnızca **riskli bulunan** başlık, ebeveyn “Pencere izleme”yi açtıysa | Ekran görüntüsü alınmaz |
 | Ekran süresi | Hesaplanır | Evet (saniye) | Sistem boşta süresi < 60 sn ise “aktif” sayılır |
 | Risk puanı, duygu etiketi | Hesaplanır | Evet | Her 10 sn’de nabız; eşik aşılınca olay |
 | Sohbet mesajları | — | Evet; AI açıksa **ebeveynin seçtiği AI sağlayıcısına** da | Önce yerel güvenlik filtresi; tehlike varsa AI’a gitmez |

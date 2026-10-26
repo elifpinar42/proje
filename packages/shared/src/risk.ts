@@ -61,8 +61,10 @@ export const SENSITIVITY_PROFILE: Record<
 export const GUIDANCE_THRESHOLD = 75;
 
 const HIGH_RISK_KEYWORDS = [
+  // kumar / yetişkin / şiddet
   'kumar',
   'bahis',
+  'iddaa',
   'casino',
   'yetişkin',
   'porno',
@@ -70,8 +72,19 @@ const HIGH_RISK_KEYWORDS = [
   'silah satın al',
   'dehşet şiddet',
   'cinayet kan',
+  // kendine zarar / kriz
+  'intihar',
+  'kendime zarar',
+  'kendine zarar',
+  'kendimi kes',
+  'ölmek istiyorum',
+  'nasıl ölünür',
+  // uyuşturucu
+  'uyuşturucu',
+  'esrar',
+  'kokain',
 ];
-const MEDIUM_RISK_KEYWORDS = ['bıçak', 'kavga', 'korkunç', 'tehlikeli oyun'];
+const MEDIUM_RISK_KEYWORDS = ['bıçak', 'kavga', 'korkunç', 'tehlikeli oyun', 'şiddet', 'silah'];
 
 /** Aktif pencere başlığı/uygulama adından içerik riski (0-100). */
 export function windowRiskFromTitle(title: string, owner = ''): number {
@@ -79,6 +92,16 @@ export function windowRiskFromTitle(title: string, owner = ''): number {
   if (HIGH_RISK_KEYWORDS.some((k) => text.includes(k))) return 85;
   if (MEDIUM_RISK_KEYWORDS.some((k) => text.includes(k))) return 45;
   return 0;
+}
+
+/** Tüm açık pencerelerden en riskli olanı (başlığıyla) seçer. */
+export function riskiestWindow(windows: { title: string; owner?: string }[]): { title: string; risk: number } {
+  let best = { title: '', risk: 0 };
+  for (const w of windows) {
+    const risk = windowRiskFromTitle(w.title, w.owner ?? '');
+    if (risk > best.risk) best = { title: w.title, risk };
+  }
+  return best;
 }
 
 /** Son 5 sn'deki tuş sayısından klavye riski (0-100). */
@@ -103,8 +126,10 @@ export function computeRisk(state: RiskState, sensitivity: Sensitivity = 'medium
   else if (state.emotion === 'fearful') score += 20;
   else if (state.emotion === 'sad') score += 15;
   if (state.keyboardRisk > 50) score += Math.min(15, (state.keyboardRisk - 50) * 0.3);
-  const scaled = score * SENSITIVITY_PROFILE[sensitivity].multiplier;
-  return Math.max(0, Math.min(100, Math.round(scaled)));
+  const scaled = Math.round(score * SENSITIVITY_PROFILE[sensitivity].multiplier);
+  // Yüksek riskli içerik (kumar, intihar vb.) hassasiyetten bağımsız olarak olay ve rehberlik eşiğini aşar.
+  const floor = state.windowRisk >= 80 ? GUIDANCE_THRESHOLD : 0;
+  return Math.max(0, Math.min(100, Math.max(scaled, floor)));
 }
 
 export function riskCategory(state: RiskState): string {
