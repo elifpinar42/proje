@@ -15,7 +15,7 @@ import {
   ownedChild,
   requireParent,
 } from '../context';
-import { encrypt, newId, sixDigitCode } from '../security';
+import { decrypt, encrypt, newId, sixDigitCode } from '../security';
 import { buildSummary } from '../services/stats';
 import { buildReportPdf } from '../services/pdf';
 import { UserKeyProvider, getAiConfig, isAiEnabled } from '../services/ai';
@@ -302,7 +302,6 @@ export function parentRoutes(ctx: AppContext): Router {
   r.post('/ai/test', async (req, res) => {
     const c = getAiConfig(db, req.parent!.id);
     if (!c || !c.model || !c.base_url) throw new HttpError(400, 'Önce AI ayarlarını kaydedin');
-    const { decrypt } = await import('../security');
     const key = c.api_key_enc ? decrypt(c.api_key_enc, config.encryptionKey) : null;
     try {
       const reply = await new UserKeyProvider(c.base_url, c.model, key).chat([

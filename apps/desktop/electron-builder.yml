@@ -1,0 +1,32 @@
+appId: tr.dijitalrehberlik.app
+productName: Dijital Rehberlik
+copyright: Dijital Rehberlik
+directories:
+  output: ../../release
+  buildResources: resources
+files:
+  - out/**
+  - package.json
+asar: true
+asarUnpack:
+  - "**/node_modules/active-win/**"
+  - "**/node_modules/node-global-key-listener/**"
+extraResources:
+  - from: ../web/dist
+    to: web
+  - from: ../server/fonts
+    to: fonts
+win:
+  icon: resources/icon.png
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: "Dijital-Rehberlik-Kurulum-${version}.${ext}"
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  shortcutName: Dijital Rehberlik
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  deleteAppDataOnUninstall: false
