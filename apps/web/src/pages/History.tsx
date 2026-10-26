@@ -32,7 +32,6 @@ export function History() {
   useEffect(() => {
     setItems([]);
     load(0);
-    // eslint-disable-next-line
   }, [childId, days, minScore, source]);
 
   if (children.length === 0) return <NoChild />;

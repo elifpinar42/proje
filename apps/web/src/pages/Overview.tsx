@@ -45,7 +45,6 @@ export function Overview() {
       stop();
       clearInterval(t);
     };
-    // eslint-disable-next-line
   }, [childId]);
 
   if (children.length === 0) {
