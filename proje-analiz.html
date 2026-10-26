@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proje Analiz Raporu</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#1c2233;--mut:#5b647a;--line:#e2e6f0;--acc:#4f46e5;--ok:#15803d;--okb:#dcfce7;--warn:#b45309;--warnb:#fef3c7;--bad:#b91c1c;--badb:#fee2e2;--nodeA:#e0e7ff;--nodeB:#ccfbf1;--nodeC:#fde68a;--nodeD:#fbcfe8;--code:#eef0f7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1220;--card:#181c2e;--ink:#e8ebf5;--mut:#9aa3bd;--line:#2a3050;--acc:#8b93ff;--ok:#4ade80;--okb:#12301f;--warn:#fbbf24;--warnb:#3a2c0a;--bad:#f87171;--badb:#3b1414;--nodeA:#2b2f66;--nodeB:#12413b;--nodeC:#4a3a0c;--nodeD:#4a1b38;--code:#222742}}
+:root[data-theme="dark"]{--bg:#0f1220;--card:#181c2e;--ink:#e8ebf5;--mut:#9aa3bd;--line:#2a3050;--acc:#8b93ff;--ok:#4ade80;--okb:#12301f;--warn:#fbbf24;--warnb:#3a2c0a;--bad:#f87171;--badb:#3b1414;--nodeA:#2b2f66;--nodeB:#12413b;--nodeC:#4a3a0c;--nodeD:#4a1b38;--code:#222742}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px 80px}
+header{padding:40px 0 16px}
+h1{font-size:clamp(1.6rem,4vw,2.4rem);margin:0 0 6px}
+h2{font-size:1.5rem;margin:0 0 4px}
+h3{font-size:1.05rem;margin:18px 0 6px}
+.sub{color:var(--mut);margin:0}
+nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:8px 0;margin-bottom:8px}
+nav .in{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin}
+nav a{white-space:nowrap;text-decoration:none;color:var(--mut);font-size:.85rem;padding:5px 10px;border-radius:999px;border:1px solid var(--line)}
+nav a:hover{color:var(--acc);border-color:var(--acc)}
+section{margin-top:36px;scroll-margin-top:60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:12px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.tag{display:inline-block;font-size:.75rem;font-weight:600;padding:2px 9px;border-radius:999px}
+.ok{background:var(--okb);color:var(--ok)}.wa{background:var(--warnb);color:var(--warn)}.ba{background:var(--badb);color:var(--bad)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card);margin-top:12px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.9rem}
+th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--code);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+tr:last-child td{border-bottom:0}
+code{background:var(--code);padding:1px 6px;border-radius:5px;font-size:.85em;word-break:break-word}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--ink);font-family:inherit}
+.n{stroke:var(--line);stroke-width:1.5}
+.a{stroke:var(--mut);stroke-width:1.6;fill:none}
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.stat b{display:block;font-size:1.7rem;color:var(--acc)}
+ul{padding-left:20px;margin:6px 0}
+li{margin:3px 0}
+.note{font-size:.85rem;color:var(--mut);margin-top:8px}
+.bar{height:10px;border-radius:6px;background:var(--code);overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}
+.road{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.road .card{margin:0;border-top:4px solid var(--acc)}
+button.th{position:fixed;right:12px;bottom:12px;z-index:9;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;cursor:pointer}
+</style>
+</head>
+<body>
+<nav><div class="wrap in" style="padding:0 16px">
+<a href="#ozet">Özet</a><a href="#mimari">Mimari</a><a href="#akis">Akış</a><a href="#durum">Durum</a><a href="#isim">İsimler</a><a href="#sorun">Sorunlar</a><a href="#ozellik">Özellikler</a><a href="#gelecek">Gelecek</a><a href="#rakip">Rakipler</a><a href="#sonuc">Sonuç</a>
+</div></nav>
+<div class="wrap">
+<header>
+<h1>Dijital Rehberlik ve Güvenlik Sistemi: Proje Analizi</h1>
+<p class="sub">Kaynak: <code>D:\Dev\proje</code> kod okuması. Uygulama çalıştırılmadı; "muhtemelen" denen yerler çalışma zamanında doğrulanmamıştır. Rakip bilgileri genel bilgiye dayanır, fiyat ve özellikler değişebilir.</p>
+</header>
+
+<section id="ozet">
+<h2>1. Proje ne yapıyor?</h2>
+<p class="sub">Aile içi bir "dijital rehberlik" masaüstü uygulaması. Felsefesi (<code>proje.pdf</code>): yasaklamak yerine analiz edip çocuğu yönlendirmek, ebeveyne raporlamak. Hedef: 7-12 yaş çocuklar ve ebeveynleri.</p>
+<div class="stats">
+<div class="stat"><b>Electron + Express</b>masaüstü + yerel API (port 3000)</div>
+<div class="stat"><b>4 sinyal</b>ekran, klavye, mikrofon, kamera</div>
+<div class="stat"><b>0-100</b>risk puanı; ≥60 bildirim, ≥75 rehberlik penceresi</div>
+<div class="stat"><b>2 rol</b>ebeveyn ve çocuk (JWT + 2FA)</div>
+</div>
+<div class="grid">
+<div class="card"><h3>Çocuk tarafı</h3><ul><li>"Canlı Rehber" ekranı, kamera ve duygu çubukları</li><li>Güvenlik odaklı AI sohbet asistanı (Gemini/OpenAI isteğe bağlı)</li><li>Sesle giriş ve sesli okuma</li><li>Riskli durumda "rehberlik" penceresi</li></ul></div>
+<div class="card"><h3>Ebeveyn tarafı</h3><ul><li>Tarih filtreli geçmiş ve günlük özet</li><li>Gizlilik anahtarları (kamera, mikrofon, ekran, klavye)</li><li>Ebeveyn danışman sohbeti</li><li>PDF rapor indirme</li></ul></div>
+<div class="card"><h3>Güvenlik katmanı</h3><ul><li>Kayıt, giriş, refresh token, güvenlik sorusu</li><li>TOTP 2FA (arayüzsüz)</li><li>Helmet, rate limit, doğrulama</li><li>AES şifreli hassas alanlar</li></ul></div>
+</div>
+</section>
+
+<section id="mimari">
+<h2>2. Mimari şeması</h2>
+<div class="card">
+<svg viewBox="0 0 900 520" role="img" aria-label="Mimari şeması">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--mut)"/></marker></defs>
+<rect class="n" x="20" y="20" width="270" height="300" rx="14" fill="var(--nodeA)"/>
+<text x="36" y="46" font-weight="700">ELECTRON ANA SÜREÇ (main.js)</text>
+<rect class="n" x="36" y="62" width="238" height="44" rx="8" fill="var(--card)"/><text x="48" y="82" font-size="13">screen.js: pencere başlığı, 4 sn</text><text x="48" y="98" font-size="11" fill="var(--mut)">active-win + anahtar kelime</text>
+<rect class="n" x="36" y="114" width="238" height="44" rx="8" fill="var(--card)"/><text x="48" y="134" font-size="13">keyboard.js: tuş hızı</text><text x="48" y="150" font-size="11">global-key-listener</text>
+<rect class="n" x="36" y="166" width="238" height="44" rx="8" fill="var(--card)"/><text x="48" y="186" font-size="13">audio.js: mikrofon desibel</text><text x="48" y="202" font-size="11">SoX (sadece ebeveyn izniyle)</text>
+<rect class="n" x="36" y="218" width="238" height="44" rx="8" fill="var(--card)"/><text x="48" y="238" font-size="13">camera.js: yüz ifadesi</text><text x="48" y="254" font-size="11">face-api (canvas eksik: çalışmıyor)</text>
+<rect class="n" x="36" y="270" width="238" height="38" rx="8" fill="var(--nodeC)"/><text x="48" y="294" font-size="13" font-weight="700">core/riskEngine.js → puan</text>
+
+<rect class="n" x="330" y="20" width="250" height="140" rx="14" fill="var(--nodeB)"/>
+<text x="346" y="46" font-weight="700">RENDERER (frontend)</text>
+<text x="346" y="72" font-size="13">index.html + app.js (vanilla)</text>
+<text x="346" y="92" font-size="13">Giriş, çocuk paneli, ebeveyn paneli</text>
+<text x="346" y="112" font-size="13">Kamera karesi → 160×120, 1,2 sn</text>
+<text x="346" y="132" font-size="11" fill="var(--bad)">nodeIntegration:true, preload yok</text>
+
+<rect class="n" x="330" y="200" width="250" height="120" rx="14" fill="var(--nodeD)"/>
+<text x="346" y="226" font-weight="700">EXPRESS BACKEND :3000</text>
+<text x="346" y="248" font-size="13">auth, history, reports, settings</text>
+<text x="346" y="268" font-size="13">guidance (AI sohbet), pdf</text>
+<text x="346" y="288" font-size="13">middleware: JWT, helmet, rate-limit</text>
+<text x="346" y="306" font-size="11">child_process.spawn('node')</text>
+
+<rect class="n" x="630" y="200" width="250" height="120" rx="14" fill="var(--card)"/>
+<text x="646" y="226" font-weight="700">VERİ: backend/data/*.json</text>
+<text x="646" y="248" font-size="13">users, settings, reports, history</text>
+<text x="646" y="268" font-size="13">activities, ai_chats, tokens</text>
+<text x="646" y="288" font-size="13">security_logs</text>
+<text x="646" y="306" font-size="11" fill="var(--bad)">kilitsiz, iki süreç yazıyor</text>
+
+<rect class="n" x="630" y="20" width="250" height="70" rx="14" fill="var(--card)"/>
+<text x="646" y="46" font-weight="700">Gemini / OpenAI</text><text x="646" y="68" font-size="13">isteğe bağlı bulut AI çağrısı</text>
+<rect class="n" x="630" y="110" width="250" height="60" rx="14" fill="var(--card)"/>
+<text x="646" y="136" font-weight="700">pdfService.js (pdfkit)</text><text x="646" y="156" font-size="13">A4 ebeveyn raporu</text>
+
+<path class="a" marker-end="url(#ar)" d="M290 90 H330"/><text x="293" y="80" font-size="11">update-ui</text>
+<path class="a" marker-end="url(#ar)" d="M330 120 H290"/><text x="293" y="138" font-size="11">frame-data</text>
+<path class="a" marker-end="url(#ar)" d="M455 160 V200"/><text x="462" y="184" font-size="11">REST + JWT</text>
+<path class="a" marker-end="url(#ar)" d="M580 260 H630"/>
+<path class="a" marker-end="url(#ar)" d="M580 215 L630 150"/>
+<path class="a" marker-end="url(#ar)" d="M580 205 C610 120 600 60 630 55"/>
+<path class="a" marker-end="url(#ar)" d="M274 289 C300 330 400 340 455 320"/><text x="300" y="352" font-size="11">DB'ye doğrudan yazma (require)</text>
+
+<rect class="n" x="20" y="400" width="860" height="100" rx="14" fill="var(--card)"/>
+<text x="36" y="426" font-weight="700">Rengin anlamı ve not</text>
+<text x="36" y="450" font-size="13">Ana süreç hem izleme yapıyor hem backend'i başlatıyor; riskEngine veriyi aynı JSON dosyalarına doğrudan yazıyor.</text>
+<text x="36" y="470" font-size="13">Telefon/LAN erişimi: backend arayüzü de statik sunduğu için http://IP:3000 ile açılabilir (PWA niyeti).</text>
+<text x="36" y="490" font-size="13">Capacitor yapılandırması var ama android klasörü ve bağımlılığı yok: mobil henüz gerçek değil.</text>
+</svg>
+</div>
+</section>
+
+<section id="akis">
+<h2>3. Adım adım çalışma akışı</h2>
+<div class="card">
+<svg viewBox="0 0 900 250" role="img" aria-label="Akış">
+<defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--mut)"/></marker></defs>
+<g font-size="12">
+<rect class="n" x="10" y="20" width="130" height="70" rx="10" fill="var(--nodeA)"/><text x="20" y="42" font-weight="700">1 Başlat</text><text x="20" y="60">npm start</text><text x="20" y="76">main.js, SoX yolu</text>
+<rect class="n" x="165" y="20" width="130" height="70" rx="10" fill="var(--nodeA)"/><text x="175" y="42" font-weight="700">2 Backend</text><text x="175" y="60">spawn node</text><text x="175" y="76">port 3000 bekle</text>
+<rect class="n" x="320" y="20" width="130" height="70" rx="10" fill="var(--nodeA)"/><text x="330" y="42" font-weight="700">3 İzleme</text><text x="330" y="60">ekran, klavye,</text><text x="330" y="76">kamera modelleri</text>
+<rect class="n" x="475" y="20" width="130" height="70" rx="10" fill="var(--nodeB)"/><text x="485" y="42" font-weight="700">4 Arayüz</text><text x="485" y="60">index.html yüklenir</text><text x="485" y="76">oturum kontrolü</text>
+<rect class="n" x="630" y="20" width="130" height="70" rx="10" fill="var(--nodeB)"/><text x="640" y="42" font-weight="700">5 Giriş</text><text x="640" y="60">JWT 8 sa, refresh</text><text x="640" y="76">rol: ebeveyn/çocuk</text>
+<rect class="n" x="775" y="20" width="115" height="70" rx="10" fill="var(--nodeB)"/><text x="785" y="42" font-weight="700">6 Panel</text><text x="785" y="60">role göre sekme</text>
+<rect class="n" x="10" y="150" width="170" height="80" rx="10" fill="var(--nodeC)"/><text x="20" y="172" font-weight="700">7 Veri toplama</text><text x="20" y="190">pencere 4 sn, tuş 2 sn</text><text x="20" y="206">kamera 1,2 sn, ses</text>
+<rect class="n" x="215" y="150" width="170" height="80" rx="10" fill="var(--nodeC)"/><text x="225" y="172" font-weight="700">8 Risk puanı</text><text x="225" y="190">sinyaller birleşir</text><text x="225" y="206">0-100 hesaplanır</text>
+<rect class="n" x="420" y="150" width="170" height="80" rx="10" fill="var(--nodeD)"/><text x="430" y="172" font-weight="700">9 Müdahale</text><text x="430" y="190">≥60: bildirim + kayıt</text><text x="430" y="206">≥75: rehberlik modalı</text>
+<rect class="n" x="625" y="150" width="125" height="80" rx="10" fill="var(--nodeD)"/><text x="635" y="172" font-weight="700">10 Ebeveyn</text><text x="635" y="190">geçmiş, özet</text><text x="635" y="206">ayarlar</text>
+<rect class="n" x="765" y="150" width="125" height="80" rx="10" fill="var(--nodeD)"/><text x="775" y="172" font-weight="700">11 PDF</text><text x="775" y="190">rapor indir</text>
+</g>
+<g class="a" marker-end="url(#ar2)"><path d="M140 55H165" marker-end="url(#ar2)"/><path d="M295 55H320" marker-end="url(#ar2)"/><path d="M450 55H475" marker-end="url(#ar2)"/><path d="M605 55H630" marker-end="url(#ar2)"/><path d="M760 55H775" marker-end="url(#ar2)"/><path d="M180 190H215" marker-end="url(#ar2)"/><path d="M385 190H420" marker-end="url(#ar2)"/><path d="M590 190H625" marker-end="url(#ar2)"/><path d="M750 190H765" marker-end="url(#ar2)"/><path d="M832 90V120H95V150" marker-end="url(#ar2)"/></g>
+</svg>
+<p class="note">Pencere kapatılınca uygulama tray'e gizlenir, izleme sürer. Gerçek çıkış tray menüsündendir.</p>
+</div>
+</section>
+
+<section id="durum">
+<h2>4. Özellik durum tablosu</h2>
+<div class="tw"><table>
+<tr><th>Özellik</th><th>Durum</th><th>Ayrıntı</th></tr>
+<tr><td>Kayıt, giriş, JWT</td><td><span class="tag ok">Çalışıyor</span></td><td>Yetki hataları var (bölüm 6)</td></tr>
+<tr><td>Ekran pencere başlığı taraması</td><td><span class="tag wa">Kısmi</span></td><td>Sadece başlıkta anahtar kelime; içerik analizi yok; ayarla kapatılamıyor</td></tr>
+<tr><td>Klavye hızı</td><td><span class="tag wa">Kısmi</span></td><td>Giriş/izinden bağımsız çalışıyor; ayarla kapatılamıyor</td></tr>
+<tr><td>Mikrofon desibeli</td><td><span class="tag wa">Kısmi</span></td><td>Sabit SoX ve cihaz adı; sadece belli donanımda</td></tr>
+<tr><td>Kamera duygu analizi</td><td><span class="tag ba">Çalışmıyor</span></td><td><code>canvas</code> kurulu değil; her karede "yüz yok" döner. Arayüzdeki "yüz algılandı" parlaklık sezgisi</td></tr>
+<tr><td>Risk puanı</td><td><span class="tag wa">Kısmi</span></td><td>Duygu bileşeni gerçek veri almıyor; <code>sensitivity</code> ayarı okunmuyor</td></tr>
+<tr><td>Çocuk AI sohbeti</td><td><span class="tag ok">Çalışıyor</span></td><td>Anahtar kelime hataları (<code>'ay'</code>, <code>'kod'</code>), bulut AI isteğe bağlı</td></tr>
+<tr><td>Ekran süresi (rapor)</td><td><span class="tag ba">Sahte</span></td><td><code>"2 saat 40 dakika"</code> sabit yazı; <code>activityDB.add</code> hiç çağrılmıyor</td></tr>
+<tr><td>PDF rapor</td><td><span class="tag ba">Sahte veri</span></td><td>Duygu dağılımı (%60/%25/%10/%5) uydurma; Türkçe karakter/emoji sorunu</td></tr>
+<tr><td>Ebeveyne bildirim</td><td><span class="tag ba">Yok</span></td><td>"Ebeveyn Bildirimli" düğmesi sadece <code>alert</code> gösterir</td></tr>
+<tr><td>Gizlilik ayarları</td><td><span class="tag wa">Büyük ölçüde etkisiz</span></td><td>Yalnız renderer tarafını etkiler</td></tr>
+<tr><td>2FA, oturum listesi, güvenlik logu</td><td><span class="tag wa">Sadece backend</span></td><td>Arayüzü yok</td></tr>
+<tr><td>Ebeveyn: çocuk sohbetlerini görme</td><td><span class="tag ba">Yok</span></td><td><code>aiChatDB.getAll</code> hiçbir uç noktaya bağlı değil</td></tr>
+<tr><td>Veri saklama temizliği</td><td><span class="tag wa">Kısmi</span></td><td><code>history.json</code> hiç temizlenmiyor</td></tr>
+<tr><td>Mobil / PWA</td><td><span class="tag ba">Yok</span></td><td>Capacitor ayarı var, uygulama yok; manifest ikonları eksik</td></tr>
+<tr><td>Test, paketleme</td><td><span class="tag ba">Yok</span></td><td>Sahte <code>test</code> scripti, electron-builder yok</td></tr>
+</table></div>
+</section>
+
+<section id="isim">
+<h2>5. Değişmesi gereken isimler ve yapı</h2>
+<div class="tw"><table>
+<tr><th>Şimdiki</th><th>Sorun</th><th>Öneri</th></tr>
+<tr><td><code>proje</code> (paket adı), boş description/author</td><td>Anlamsız ad</td><td>Gerçek ürün adı (örn. "RehberKid"), açıklama ve yazar doldur</td></tr>
+<tr><td><code>src/core/riskEngine.js</code> ve <code>src/modules/riskEngine.js</code></td><td>Aynı ad iki kez; biri ölü</td><td>Ölü olanı sil; çekirdek adı <code>riskScorer</code></td></tr>
+<tr><td><code>src/modules/</code> ve <code>src/monitoring/</code></td><td>Ayrım belirsiz</td><td>Tek <code>monitors/</code> klasörü</td></tr>
+<tr><td><code>modules/windowMonitor.js</code>, <code>emotion.js</code>, <code>mouse.js</code></td><td>Ölü, biri geçersiz JS, biri 0 bayt</td><td>Sil veya <code>monitors/</code> altında gerçekten uygula</td></tr>
+<tr><td><code>usersDB.update(query, {$set}, options, cb)</code></td><td>Kullanılmayan nedb imzası, <code>users.db</code> 0 bayt artık dosya</td><td>Promise tabanlı repository; artık dosyayı sil</td></tr>
+<tr><td>Log <code>[PRODUCTION SECURITY]</code>, "Gerçek ..." yorumları</td><td>Prototip için abartılı</td><td>Dürüst, nötr log</td></tr>
+<tr><td><code>baslat.bat</code> içindeki <code>C:\Users\pelif\...</code></td><td>Kişisel yol sabit</td><td>Göreli yol veya sadece <code>npm start</code></td></tr>
+<tr><td>Türkçe yorum + İngilizce kod karışık, <code>activities</code>/<code>history</code>/<code>reports</code></td><td>Üç benzer tablo, kime ait belli değil</td><td>Tek <code>events</code> tablosu + <code>childId</code></td></tr>
+<tr><td><code>waitForBackend</code> yorumu <code>/api/health</code></td><td>Kod login'e HEAD atıyor</td><td>Gerçek <code>/api/health</code> ekle</td></tr>
+<tr><td><code>app.js</code> 1570 satır, <code>index.html</code> 600 satır inline CSS</td><td>Tek dev dosya, global fonksiyonlar</td><td>Modüllere ve ayrı CSS'e böl</td></tr>
+</table></div>
+</section>
+
+<section id="sorun">
+<h2>6. Boş/yarım adımlar ve hatalar</h2>
+<h3><span class="tag ba">Kritik</span> Güvenlik</h3>
+<div class="tw"><table>
+<tr><th>Sorun</th><th>Nerede</th><th>Çözüm</th></tr>
+<tr><td>Refresh, rolü kaybeder: çocuk yenileyince <b>ebeveyn</b> token alır; kayıtta herkes ebeveyn olabilir</td><td><code>index.js:161, 216</code>, <code>validation.js:23</code></td><td>Rolü token'a yaz; ebeveyn kaydını kısıtla</td></tr>
+<tr><td><code>nodeIntegration:true</code>, <code>contextIsolation:false</code>, <code>innerHTML</code> kullanımı: XSS makine ele geçirmeye döner</td><td><code>main.js:208</code>, <code>app.js</code></td><td>preload + <code>contextBridge</code>, <code>textContent</code></td></tr>
+<tr><td>Şifre sıfırlama zayıf: sadece kullanıcı adıyla arama, boş cevap <code>'default'</code></td><td><code>database.js:62</code>, <code>index.js:85, 269</code></td><td>Güçlü doğrulama, e-posta/OTP, 2FA'yı atlatmama</td></tr>
+<tr><td>Yer tutucu gizli anahtarlar; <code>.env</code> muhtemelen yüklenmiyor (cwd)</td><td><code>.env</code>, <code>main.js:20</code>, <code>auth.js:3</code></td><td>Anahtarları üret, <code>cwd: backend</code>, tek kaynak</td></tr>
+<tr><td>Her origin'e açık CORS + credentials</td><td><code>index.js:50</code></td><td>İzinli origin listesi</td></tr>
+<tr><td>Rol/sahiplik kontrolü eksik: çocuk tüm raporları okuyup yazabilir; tek global geçmiş</td><td><code>index.js:385-397</code></td><td>Ebeveyn–çocuk eşleme, rol kontrolü</td></tr>
+</table></div>
+<h3><span class="tag wa">Yüksek</span> Doğruluk ve gizlilik</h3>
+<ul>
+<li>Süresi dolan token 403 dönüyor, frontend yalnızca 401'de yeniliyor: otomatik yenileme çalışmaz (<code>auth.js:32</code>, <code>app.js:252</code>).</li>
+<li>İki süreç aynı JSON dosyalarına kilitsiz yazıyor: veri bozulması olası.</li>
+<li>İzleme, giriş ve izinden bağımsız başlıyor; <code>proje.pdf</code> "izinsiz veri toplanmaz" diyor. Çocuk sohbeti buluta gidebiliyor, bu "cihaz içi" iddiasıyla çelişiyor. Çocuk, yüz ve ses verisi için KVKK değerlendirmesi gerekir.</li>
+<li>Bilgi tabanındaki <code>'ay'</code> her kelimede eşleşiyor ("Öğretmenime şikayet edeceğim" → gezegen cevabı). <code>'kod'</code>, <code>'hesap'</code>, <code>'link'</code> yanlış alarm üretir.</li>
+<li>Üretim arayüzünde test araçları: 7 duygu düğmesi ve "Hassas İçerik Simülasyonu" gerçek geçmişe yazıyor; HTML'de "Ahmet", "28 dB" gibi örnek veri.</li>
+<li>Modalda <code>description</code> alanı yanıtta yok: "undefined" görünür (<code>app.js:1079</code>).</li>
+</ul>
+<h3><span class="tag wa">Orta</span> Taşınabilirlik ve kalite</h3>
+<ul>
+<li>Sabit SoX yolu, sabit mikrofon adı; <code>spawn('node')</code> paketlenmiş uygulamada çalışmaz.</li>
+<li>Kullanılmayan bağımlılıklar (<code>mic</code>, <code>node-mic</code>, <code>nedb</code>, <code>@tensorflow/tfjs</code>); eksik: <code>canvas</code>, <code>node-global-key-listener</code>.</li>
+<li>Tray ikonu olarak <code>manifest.json</code> veriliyor; manifest ikonları yok.</li>
+<li><code>trySolveMath</code> içinde <code>Function()</code>: <code>9**9**9</code> ile CPU tüketimi.</li>
+<li>README, test, linter, paketleme (electron-builder) yok; tek commit.</li>
+</ul>
+</section>
+
+<section id="ozellik">
+<h2>7. Eklenebilecek özellikler</h2>
+<div class="grid">
+<div class="card"><h3>Çekirdek</h3><ul><li>Gerçek içerik analizi: metin, görsel, ses/şarkı sözü (proje.pdf'in asıl vaadi)</li><li>Uygulama/site bazlı ekran süresi ve günlük limit</li><li>Ebeveyn–çocuk eşleme, birden çok çocuk profili</li><li>Ebeveyne gerçek anlık bildirim (push/e-posta)</li></ul></div>
+<div class="card"><h3>Gizlilik ve güven</h3><ul><li>İlk açılışta rıza ekranı, çocuk için açıklama</li><li>Cihaz içi (offline) NLP ve yüz analizi seçeneği</li><li>Veri saklama süresi ayarı, "verilerimi sil"</li><li>2FA ve oturum yönetimi arayüzü</li></ul></div>
+<div class="card"><h3>Rehberlik deneyimi</h3><ul><li>Yaşa uygun alternatif içerik önerisi (TÜBİTAK, Khan vb.)</li><li>Ödül/rozet, mola hatırlatıcısı</li><li>Çocuğa duygu günlüğü, ebeveyne haftalık özet</li><li>Çocuğun itiraz/"yanlış alarm" bildirimi</li></ul></div>
+<div class="card"><h3>Platform</h3><ul><li>Mobil eş uygulama (Android/iOS) ve bulut senkron</li><li>SQLite/PostgreSQL, kuyruk tabanlı yazma</li><li>Çok dil, erişilebilirlik, duyarlı tasarım</li><li>Otomatik güncelleme, imzalı kurulum paketi</li></ul></div>
+</div>
+</section>
+
+<section id="gelecek">
+<h2>8. Projenin geleceği ve yol haritası</h2>
+<p class="sub">Ürün fikri güçlü ("engelleme değil rehberlik"), ancak şu an prototip: görünür özelliklerin bir kısmı sahte, güvenlik açıkları ciddi. Önce güven, sonra gerçek analiz, sonra ürünleşme.</p>
+<div class="road">
+<div class="card"><h3>Faz 1: Sağlamlaştır (1-2 hafta)</h3><ul><li>Yetki, şifre sıfırlama, CORS, .env düzeltmeleri</li><li>preload + contextBridge</li><li>Sahte veri ve test düğmelerini kaldır</li><li>Ölü dosyaları sil, isimleri düzelt</li><li>Rıza ekranı ve ayarların gerçekten çalışması</li></ul></div>
+<div class="card" style="border-top-color:var(--ok)"><h3>Faz 2: Gerçek analiz (1-2 ay)</h3><ul><li>Kamera analizini renderer'da tfjs/face-api ile çalıştır</li><li>Gerçek ekran süresi ve uygulama sınıflandırma</li><li>Daha iyi metin sınıflandırma (bağlamlı, yerel model)</li><li>SQLite'a geçiş, ebeveyn–çocuk modeli</li><li>PDF için Unicode font ve gerçek veri</li></ul></div>
+<div class="card" style="border-top-color:var(--warn)"><h3>Faz 3: Ürünleşme (3-6 ay)</h3><ul><li>Mobil uygulama ve anlık bildirim</li><li>Paketleme, otomatik güncelleme</li><li>KVKK/COPPA uyum, pedagog danışmanlığı</li><li>Pilot aileler ile test, geri bildirim</li><li>Freemium veya okul/kurum modeli</li></ul></div>
+</div>
+</section>
+
+<section id="rakip">
+<h2>9. Rakip analizi</h2>
+<p class="sub">Yaklaşık, genel bilgiye dayalı karşılaştırma. ● var, ◐ kısmi, ○ yok.</p>
+<div class="tw"><table>
+<tr><th>Ürün</th><th>Web filtre</th><th>Uygulama limiti</th><th>Konum</th><th>Mobil</th><th>Mesaj/sosyal tarama</th><th>AI içerik</th><th>Duygu analizi</th><th>Fiyat</th></tr>
+<tr><td><b>Bu proje</b></td><td>○</td><td>○</td><td>○</td><td>○</td><td>◐ (sohbet)</td><td>◐</td><td>◐ (çalışmıyor)</td><td>Ücretsiz</td></tr>
+<tr><td>Qustodio</td><td>●</td><td>●</td><td>●</td><td>●</td><td>◐</td><td>◐</td><td>○</td><td>Ücretli (ücretsiz sınırlı)</td></tr>
+<tr><td>Bark</td><td>●</td><td>●</td><td>●</td><td>●</td><td>● (güçlü)</td><td>●</td><td>◐ (zarar uyarısı)</td><td>Ücretli</td></tr>
+<tr><td>Google Family Link</td><td>●</td><td>●</td><td>●</td><td>●</td><td>○</td><td>○</td><td>○</td><td>Ücretsiz</td></tr>
+<tr><td>Microsoft Family Safety</td><td>●</td><td>●</td><td>●</td><td>●</td><td>○</td><td>○</td><td>○</td><td>Ücretsiz / abonelik</td></tr>
+<tr><td>Net Nanny</td><td>● (güçlü)</td><td>●</td><td>●</td><td>●</td><td>◐</td><td>● (anlık içerik)</td><td>○</td><td>Ücretli</td></tr>
+<tr><td>Kaspersky Safe Kids</td><td>●</td><td>●</td><td>●</td><td>●</td><td>◐</td><td>◐</td><td>○</td><td>Ücretsiz sınırlı / ücretli</td></tr>
+<tr><td>Apple Screen Time</td><td>●</td><td>●</td><td>◐</td><td>● (Apple)</td><td>◐</td><td>◐</td><td>○</td><td>Ücretsiz</td></tr>
+</table></div>
+<div class="grid">
+<div class="card"><h3><span class="tag ok">Artılar</span></h3><ul>
+<li><b>Farklı felsefe:</b> engellemek yerine rehberlik ve çocukla diyalog; rakipler çoğunlukla kısıtlayıcı.</li>
+<li><b>Çok kanallı sinyal fikri:</b> ses, klavye hızı, duygu, pencere birlikte; rakiplerde duygu analizi yok denecek kadar az.</li>
+<li><b>Çocuk dostu AI asistan</b> ve Türkçe öncelikli deneyim; yerel dil desteği rakiplerde zayıf.</li>
+<li><b>Gizlilik potansiyeli:</b> cihaz içi işleme mümkün; rakipler bulutta.</li>
+<li>Ücretsiz, özelleştirilebilir, açık mimari.</li></ul></div>
+<div class="card"><h3><span class="tag ba">Eksikler</span></h3><ul>
+<li>Web/site filtresi, uygulama engelleme ve süre limiti yok.</li>
+<li>Mobil uygulama ve konum yok; çocuk çoğunlukla telefonda.</li>
+<li>Gerçek içerik analizi (video, görsel, mesajlar, sosyal medya) yok; rakipler yıllardır olgun.</li>
+<li>Güvenlik olgunluğu düşük; veri koruma, KVKK uyumu belirsiz.</li>
+<li>Tek cihaz, tek makine; çoklu çocuk/cihaz ve bulut senkronu yok.</li>
+<li>Güven/marka, destek, tamamlanmış ürün deneyimi yok.</li></ul></div>
+</div>
+<div class="card"><h3>Konumlandırma önerisi</h3>
+<p>Qustodio veya Bark ile doğrudan yarışmak yerine <b>"çocuğu kontrol etmeyen, ona eşlik eden Türkçe, gizlilik öncelikli rehber"</b> nişi: okullar, pedagoglar ve ebeveynler için; duygu/dijital refah odaklı. Rakiplerin filtre/limit temelini ya kendin ekle ya da onların üzerine bir "rehberlik katmanı" olarak konumlan.</p></div>
+</section>
+
+<section id="sonuc">
+<h2>10. Sonuç ve ilk 5 aksiyon</h2>
+<div class="card">
+<p>Fikir özgün ve gerekçeli, fakat bugünkü kod bir <b>prototip</b>: arayüz cilalı, arkada ise sahte veri, çalışmayan kamera analizi ve ciddi güvenlik açıkları var. Çocuk verisi hassas olduğundan önce güvenlik ve dürüstlük, sonra yetenek.</p>
+<ol>
+<li><b>Yetki yükseltmeyi ve şifre sıfırlamayı düzelt</b> (refresh rolü, kayıtta rol kısıtı).</li>
+<li><b>Electron'u güvene al:</b> preload + contextIsolation, innerHTML temizliği.</li>
+<li><b>Sahte verileri ve test düğmelerini kaldır</b>; sabit "2 saat 40 dakika" ve PDF uydurmalarını gerçek veriye bağla.</li>
+<li><b>Kamera analizini onar</b> (canvas veya renderer'da tfjs) ve ayarları gerçekten uygulat; rıza ekranı ekle.</li>
+<li><b>Yapıyı temizle:</b> ölü dosyalar, çift riskEngine, isimler, README ve ilk testler.</li>
+</ol>
+<div class="note">Bu rapor kod okumasıyla hazırlandı; uygulama çalıştırılmadı.</div>
+</div>
+</section>
+</div>
+<button class="th" id="tb" type="button">Tema</button>
+<script>
+(function(){var b=document.getElementById('tb'),r=document.documentElement;
+b.addEventListener('click',function(){var d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);r.setAttribute('data-theme',d?'light':'dark')})})();
+</script>
+</body>
+</html>
