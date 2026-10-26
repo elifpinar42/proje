@@ -16,6 +16,9 @@ extraResources:
     to: web
   - from: ../server/fonts
     to: fonts
+  - from: resources
+    to: resources
+    filter: ["icon.png", "tray.png"]
 win:
   icon: resources/icon.png
   target:

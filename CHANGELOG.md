@@ -1,5 +1,10 @@
 # Değişiklik günlüğü
 
+## 2.0.1
+
+- Tepsi (tray) simgesi kurulu sürümde görünmüyordu: simge dosyaları pakete eklendi.
+- Kamera/mikrofon: izin denetimi düzeltildi, izinler ilk açılışta isteniyor, hata mesajları gerçek nedeni söylüyor, meşgul cihazda otomatik yeniden deneme.
+
 ## 2.0.0 — Yeniden yapılandırma
 
 Prototip (Electron + JSON dosya “veritabanı” + tek parça `app.js`) baştan yazıldı.
