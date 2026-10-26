@@ -1,0 +1,34 @@
+{
+  "name": "@dr/desktop",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Dijital Rehberlik — çocuk cihazı ajanı",
+  "author": "Dijital Rehberlik",
+  "main": "out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc -p tsconfig.json",
+    "dist:win": "electron-builder --win --x64 --config electron-builder.yml"
+  },
+  "dependencies": {
+    "@dr/shared": "*",
+    "@dr/server": "*",
+    "@vladmandic/face-api": "^1.7.14",
+    "active-win": "^8.2.1",
+    "node-global-key-listener": "^0.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^43.1.0",
+    "electron-builder": "^26.0.0",
+    "electron-vite": "^4.0.0",
+    "vite": "^7.0.0"
+  }
+}
