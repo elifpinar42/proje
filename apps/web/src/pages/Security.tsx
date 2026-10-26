@@ -19,6 +19,8 @@ const LOG_LABELS: Record<string, string> = {
   session_revoked: 'Oturum sonlandırıldı',
   other_sessions_revoked: 'Diğer oturumlar sonlandırıldı',
   device_removed: 'Cihaz kaldırıldı',
+  unpair_code_created: 'Eşleşme kaldırma kodu üretildi',
+  device_unpaired_with_code: 'Çocuk cihazı kodla eşleşmeyi kaldırdı',
   child_deleted: 'Çocuk profili silindi',
   child_data_deleted: 'Çocuk verileri silindi',
   ai_config_updated: 'AI ayarları değiştirildi',

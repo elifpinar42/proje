@@ -84,7 +84,7 @@ function Setup({ state }: { state: AppState }) {
             <span>
               <strong>Bu bilgisayardaki yerel sunucu</strong>
               <br />
-              <span className="muted small">Varsayılan. Ebeveyn paneli bu bilgisayarda (isterseniz yerel ağda) çalışır.</span>
+              <span className="muted small">Varsayılan. Ebeveyn paneli bu bilgisayarda ve yerel ağdaki telefonlardan da erişilebilir.</span>
             </span>
           </label>
           <label className="radio">
@@ -352,56 +352,62 @@ function Running({ state }: { state: AppState }) {
             </section>
           )}
 
-          <details className="card">
-            <summary>Ayarlar</summary>
-            <div className="stack" style={{ marginTop: 12 }}>
-              {!state.isDev && (
-                <label className="radio">
-                  <input type="checkbox" checked={state.autostart} onChange={(e) => void window.agent.setAutostart(e.target.checked)} />
-                  <span>Bilgisayar açılınca otomatik başlat</span>
-                </label>
-              )}
-              {state.serverMode === 'embedded' && (
-                <>
-                  <label className="radio">
-                    <input type="checkbox" checked={state.lanAccess} onChange={(e) => void window.agent.setLanAccess(e.target.checked)} />
-                    <span>
-                      Ebeveyn panelini yerel ağdan (telefon vb.) erişilebilir yap
-                      <br />
-                      <span className="muted small">Açıkken panel aynı ağdaki cihazlara açılır.</span>
-                    </span>
-                  </label>
-                  {state.panelUrls.map((u) => (
-                    <code key={u}>{u}</code>
-                  ))}
-                  <button className="btn ghost small" onClick={() => void window.agent.openPanel()}>
-                    Ebeveyn panelini aç
-                  </button>
-                </>
-              )}
-              <button
-                className="btn ghost small"
-                onClick={() => {
-                  if (confirm('Bu bilgisayarın eşleşmesi kaldırılsın mı? Yeniden eşleştirme için ebeveynden yeni kod gerekir.')) void window.agent.unpair();
-                }}
-              >
-                Eşleşmeyi kaldır
-              </button>
-              {state.isDev && (
-                <div className="row">
-                  <button className="btn ghost small" onClick={() => void window.agent.devSimulate('risk')}>
-                    [Geliştirme] Riskli durum
-                  </button>
-                  <button className="btn ghost small" onClick={() => void window.agent.devSimulate('clear')}>
-                    [Geliştirme] Sıfırla
-                  </button>
-                </div>
-              )}
-            </div>
-          </details>
+          <UnpairBox isDev={state.isDev} />
         </>
       )}
     </main>
+  );
+}
+
+/* ---- Eşleşmeyi kaldırma (ebeveyn kodu gerekir) ---- */
+
+function UnpairBox({ isDev }: { isDev: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const code = String(new FormData(e.currentTarget).get('code') ?? '');
+    setBusy(true);
+    setError('');
+    const res = await window.agent.unpair(code);
+    setBusy(false);
+    if (!res.ok) setError(res.error ?? 'Kod kabul edilmedi');
+  }
+
+  return (
+    <section className="card stack" aria-label="Eşleşmeyi kaldır">
+      {!open ? (
+        <button className="btn ghost small" style={{ alignSelf: 'flex-start' }} onClick={() => setOpen(true)}>
+          Eşleşmeyi kaldır
+        </button>
+      ) : (
+        <form className="stack" onSubmit={submit}>
+          <p className="muted small">Bu bilgisayarın eşleşmesini kaldırmak için anne veya babanın ebeveyn panelinden ürettiği 6 haneli kodu gir.</p>
+          <input name="code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoComplete="off" className="code" aria-label="Ebeveyn kodu" />
+          {error && <div className="alert error">{error}</div>}
+          <div className="row">
+            <button className="btn small" disabled={busy}>
+              Kaldır
+            </button>
+            <button type="button" className="btn ghost small" onClick={() => setOpen(false)}>
+              Vazgeç
+            </button>
+          </div>
+        </form>
+      )}
+      {isDev && (
+        <div className="row">
+          <button className="btn ghost small" onClick={() => void window.agent.devSimulate('risk')}>
+            [Geliştirme] Riskli durum
+          </button>
+          <button className="btn ghost small" onClick={() => void window.agent.devSimulate('clear')}>
+            [Geliştirme] Sıfırla
+          </button>
+        </div>
+      )}
+    </section>
   );
 }
 

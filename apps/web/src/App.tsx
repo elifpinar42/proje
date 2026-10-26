@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { api, refreshSession, setAccessToken, setSessionLostHandler, type Child, type User } from './api';
 import { SessionContext, useSession, type Session } from './session';
 import { AuthPage } from './pages/Auth';
@@ -115,9 +115,22 @@ export function App() {
 
 function Shell({ children: page }: { children: ReactNode }) {
   const { user, logout } = useSession();
+  const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  // Sayfa değişince mobildeki yan menü kapanır.
+  useEffect(() => setOpen(false), [location.pathname]);
+
   return (
     <div className="shell">
-      <aside className="sidebar">
+      <header className="topbar">
+        <button className="btn ghost small" aria-label="Menüyü aç" aria-expanded={open} aria-controls="sidebar" onClick={() => setOpen((o) => !o)}>
+          ☰
+        </button>
+        <span className="brand">🛡️ Dijital Rehberlik</span>
+      </header>
+      {open && <div className="scrim" onClick={() => setOpen(false)} aria-hidden />}
+      <aside id="sidebar" className={`sidebar ${open ? 'open' : ''}`}>
         <div className="brand">🛡️ Dijital Rehberlik</div>
         <nav>
           {NAV.map((n) => (

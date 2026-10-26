@@ -1,5 +1,12 @@
 # Değişiklik günlüğü
 
+## 2.0.2
+
+- Ebeveyn panelinde her ekran boyutunda yan menü (mobilde açılır çekmece); alt menü kaldırıldı.
+- Çocuk uygulamasındaki “Ayarlar” kaldırıldı: otomatik başlatma artık ebeveyn panelinden (Ayarlar → izinler) yönetilir.
+- Gömülü sunucu her zaman yerel ağa açık; panel adresleri ebeveyn panelinde (Çocuklar sayfası) gösterilir.
+- Çocuk cihazındaki eşleşme yalnızca ebeveynin ürettiği 6 haneli “kaldırma kodu” ile kaldırılabilir.
+
 ## 2.0.1
 
 - Tepsi (tray) simgesi kurulu sürümde görünmüyordu: simge dosyaları pakete eklendi.

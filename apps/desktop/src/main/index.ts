@@ -44,7 +44,8 @@ const fontsDir = () => (IS_DEV ? join(app.getAppPath(), '../server/fonts') : joi
 
 async function startEmbedded(): Promise<void> {
   await stopEmbedded();
-  const host = store.get().lanAccess ? '0.0.0.0' : '127.0.0.1';
+  // Yerel sunucu her zaman yerel ağa açıktır (telefondan panel erişimi için).
+  const host = '0.0.0.0';
   const make = (port: number) =>
     createServer({
       dataDir: join(dataDir(), 'server'),
@@ -86,11 +87,9 @@ function serverUrl(): string {
 function panelUrls(): string[] {
   if (store.get().serverMode !== 'embedded' || !embedded) return [];
   const urls = [`http://localhost:${embeddedPort}`];
-  if (store.get().lanAccess) {
-    for (const list of Object.values(networkInterfaces())) {
-      for (const n of list ?? []) {
-        if (n.family === 'IPv4' && !n.internal) urls.push(`http://${n.address}:${embeddedPort}`);
-      }
+  for (const list of Object.values(networkInterfaces())) {
+    for (const n of list ?? []) {
+      if (n.family === 'IPv4' && !n.internal) urls.push(`http://${n.address}:${embeddedPort}`);
     }
   }
   return urls;
@@ -114,8 +113,6 @@ function buildState(): AppState {
     risk: snap.risk,
     riskState: snap.riskState,
     expressions: snap.expressions,
-    autostart: IS_DEV ? false : app.getLoginItemSettings().openAtLogin,
-    lanAccess: cfg.lanAccess,
     lastError: lastError || snap.lastError,
     isDev: IS_DEV,
   };
@@ -248,10 +245,13 @@ function registerIpc(): void {
     pushState();
   });
 
-  ipcMain.handle('agent:unpair', (e) => {
-    if (!fromRenderer(e)) return;
-    agent.unpair();
+  ipcMain.handle('agent:unpair', async (e, code: string) => {
+    if (!fromRenderer(e)) return { ok: false, error: 'Yetkisiz' };
+    const c = String(code ?? '').trim();
+    if (!/^\d{6}$/.test(c)) return { ok: false, error: 'Kod 6 haneli olmalı' };
+    const res = await agent.unpairWithCode(c);
     pushState();
+    return res;
   });
 
   ipcMain.on('agent:emotion', (e, p: EmotionPayload) => {
@@ -296,19 +296,6 @@ function registerIpc(): void {
 
   ipcMain.handle('agent:openPanel', (e) => (fromRenderer(e) ? openPanel() : undefined));
 
-  ipcMain.handle('agent:setAutostart', (e, enabled: boolean) => {
-    if (!fromRenderer(e) || IS_DEV) return;
-    app.setLoginItemSettings({ openAtLogin: !!enabled, args: ['--hidden'] });
-    pushState();
-  });
-
-  ipcMain.handle('agent:setLanAccess', async (e, enabled: boolean) => {
-    if (!fromRenderer(e)) return;
-    store.update({ lanAccess: !!enabled });
-    if (store.get().serverMode === 'embedded') await startEmbedded();
-    pushState();
-  });
-
   ipcMain.handle('agent:devSimulate', (e, kind: 'risk' | 'clear') => {
     if (!fromRenderer(e) || !IS_DEV) return;
     agent.devSimulate(kind === 'risk' ? 'risk' : 'clear');
@@ -337,6 +324,10 @@ app.whenReady().then(async () => {
   agent = new Agent(store, queue, serverUrl);
   agent.on('change', pushState);
   agent.on('unpaired', pushState);
+  // Otomatik başlatma yalnızca ebeveynin ayarına göre belirlenir.
+  agent.on('settings', (st) => {
+    if (!IS_DEV) app.setLoginItemSettings({ openAtLogin: !!st.autostart, args: ['--hidden'] });
+  });
   agent.on('guidance', (g) => {
     showWindow();
     mainWindow?.webContents.send('agent:guidance', g);

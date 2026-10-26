@@ -15,8 +15,6 @@ export interface AppState {
   risk: number;
   riskState: RiskState;
   expressions: Record<string, number>;
-  autostart: boolean;
-  lanAccess: boolean;
   lastError: string;
   isDev: boolean;
 }
@@ -54,14 +52,12 @@ export interface AgentApi {
   onGuidance(cb: (g: Guidance) => void): () => void;
   pair(req: PairRequest): Promise<{ ok: boolean; error?: string }>;
   acceptConsent(): Promise<void>;
-  unpair(): Promise<void>;
+  unpair(code: string): Promise<{ ok: boolean; error?: string }>;
   sendEmotion(p: EmotionPayload): void;
   sendAudioLevel(level: number): void;
   chat(message: string, history: { role: 'user' | 'assistant'; content: string }[]): Promise<ChatResult>;
   mediaStatus(): Promise<{ camera: string; microphone: string } | null>;
   openPrivacy(kind: 'camera' | 'microphone'): Promise<void>;
   openPanel(): Promise<void>;
-  setAutostart(enabled: boolean): Promise<void>;
-  setLanAccess(enabled: boolean): Promise<void>;
   devSimulate(kind: 'risk' | 'clear'): Promise<void>;
 }

@@ -15,3 +15,5 @@
 - **Kamera/mikrofon hata mesajları** artık gerçek nedeni söylüyor (meşgul / bulunamadı / izin yok) ve ayrı ayrı gösteriliyor; meşgulse 10 sn’de bir otomatik tekrar deniyor.
 | 21:10 | Sistem tepsisinde simge görünmüyor: `resources/tray.png` pakete girmiyordu (yalnızca web ve fonts kopyalanıyordu) → boş simge | DÜZELTİLDİ (2.0.1) |
 | 21:10 | Windows kamera izin listesinde iki “Dijital Rehberlik” vardı: biri kurulu uygulama, diğeri benim derleme doğrulamasında çalıştırdığım `release\win-unpacked` kopyası (ayrı yol = ayrı kayıt). Hata değil | AÇIKLANDI |
+| 21:15 | İstek: her ekranda yan menü (alt menü yok); çocuk uygulamasında ayar olmasın; yerel sunucu hep ağa açık; eşleşmeyi kaldırmak için ebeveyn kodu | UYGULANDI (2.0.2) |
+| 21:20 | Sunucu `index.html`'i 1 saat önbelleğe aldırıyordu → güncellemeden sonra eski panel görünüyordu | DÜZELTİLDİ (2.0.2: index.html no-cache) |

@@ -162,4 +162,11 @@ const MIGRATIONS: string[] = [
   );
   CREATE INDEX idx_seclog_user ON security_logs(user_id, ts);
   `,
+  `
+  CREATE TABLE unpair_codes (
+    code TEXT PRIMARY KEY,
+    child_id TEXT NOT NULL REFERENCES children(id) ON DELETE CASCADE,
+    expires_at INTEGER NOT NULL
+  );
+  `,
 ];

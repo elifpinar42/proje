@@ -60,6 +60,41 @@ function PairCode({ childId }: { childId: string }) {
   );
 }
 
+function UnpairCode({ childId }: { childId: string }) {
+  const [code, setCode] = useState<{ code: string; expiresAt: number } | null>(null);
+  const [error, setError] = useState('');
+  return (
+    <div className="stack">
+      <p className="muted small">
+        Çocuk, kendi bilgisayarındaki eşleşmeyi yalnızca sizin verdiğiniz bu kodla kaldırabilir.
+      </p>
+      {error && <Alert kind="error">{error}</Alert>}
+      {code && (
+        <div className="stack">
+          <div className="pair-code" data-testid="unpair-code">
+            {code.code}
+          </div>
+          <p className="muted small">10 dakika geçerli, tek kullanımlık.</p>
+        </div>
+      )}
+      <button
+        className="btn ghost small"
+        style={{ alignSelf: 'flex-start' }}
+        onClick={async () => {
+          try {
+            setCode(await api.post(`/children/${childId}/unpair-code`));
+            setError('');
+          } catch (e) {
+            setError(errMsg(e));
+          }
+        }}
+      >
+        Eşleşmeyi kaldırma kodu üret
+      </button>
+    </div>
+  );
+}
+
 function ChildCard({ id, name }: { id: string; name: string }) {
   const { reloadChildren } = useSession();
   const devices = useLoad<{ items: Device[] }>(`/children/${id}/devices`);
@@ -121,6 +156,11 @@ function ChildCard({ id, name }: { id: string; name: string }) {
         <PairCode childId={id} />
       </div>
 
+      <div>
+        <h3>Eşleşmeyi kaldırma kodu</h3>
+        <UnpairCode childId={id} />
+      </div>
+
       <div className="row">
         <button
           className="btn ghost small"
@@ -144,6 +184,22 @@ function ChildCard({ id, name }: { id: string; name: string }) {
           Profili sil
         </button>
       </div>
+    </section>
+  );
+}
+
+function LanInfo() {
+  const info = useLoad<{ port: number; lanUrls: string[] }>('/server-info');
+  if (!info.data || info.data.lanUrls.length === 0) return null;
+  return (
+    <section className="card stack" aria-label="Yerel ağ adresi">
+      <h2 style={{ margin: 0 }}>Telefondan erişim</h2>
+      <p className="muted small">Aynı Wi-Fi ağındaki telefon veya bilgisayardan bu panele şu adreslerle girebilirsiniz:</p>
+      {info.data.lanUrls.map((u) => (
+        <code key={u} style={{ alignSelf: 'flex-start' }}>
+          {u}
+        </code>
+      ))}
     </section>
   );
 }
@@ -180,6 +236,7 @@ export function Children() {
         </button>
       </form>
       {error && <Alert kind="error">{error}</Alert>}
+      <LanInfo />
       {children.map((c) => (
         <ChildCard key={c.id} id={c.id} name={c.name} />
       ))}

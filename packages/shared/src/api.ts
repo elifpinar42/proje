@@ -35,6 +35,8 @@ export const settingsSchema = z.object({
   cameraEnabled: z.boolean(),
   micEnabled: z.boolean(),
   notifyParentOnRisk: z.boolean(),
+  /** Çocuk bilgisayarı açılınca uygulama kendiliğinden başlasın. */
+  autostart: z.boolean().default(true),
   retentionDays: z.number().int().min(1).max(3650),
 });
 export type ChildSettings = z.infer<typeof settingsSchema>;
@@ -45,10 +47,12 @@ export const DEFAULT_SETTINGS: ChildSettings = {
   cameraEnabled: false,
   micEnabled: false,
   notifyParentOnRisk: true,
+  autostart: true,
   retentionDays: 90,
 };
 
 export const childCreateSchema = z.object({ name: z.string().trim().min(1).max(40) });
+export const unpairSchema = z.object({ code: z.string().trim().regex(/^[0-9]{6}$/, '6 haneli kod gerekli') });
 export const pairSchema = z.object({
   code: z.string().trim().regex(/^[0-9]{6}$/, '6 haneli kod gerekli'),
   deviceName: z.string().trim().min(1).max(60).default('Çocuk bilgisayarı'),

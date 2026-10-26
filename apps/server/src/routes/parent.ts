@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { networkInterfaces } from 'node:os';
 import { z } from 'zod';
 import {
   DEFAULT_SETTINGS,
@@ -96,6 +97,18 @@ export function parentRoutes(ctx: AppContext): Router {
     res.status(201).json({ code, expiresAt });
   });
 
+  /** Çocuk cihazındaki eşleşmeyi kaldırmak için ebeveynden istenen kod. */
+  r.post('/children/:id/unpair-code', (req, res) => {
+    const child = ownedChild(ctx, req, String(req.params.id));
+    const expiresAt = Date.now() + 10 * 60_000;
+    db.run('DELETE FROM unpair_codes WHERE child_id = ?', child.id);
+    let code = sixDigitCode();
+    while (db.get('SELECT 1 AS x FROM unpair_codes WHERE code = ?', code)) code = sixDigitCode();
+    db.run('INSERT INTO unpair_codes (code, child_id, expires_at) VALUES (?,?,?)', code, child.id, expiresAt);
+    logSecurity(ctx, req, req.parent!.id, 'unpair_code_created', child.name);
+    res.status(201).json({ code, expiresAt });
+  });
+
   r.get('/children/:id/devices', (req, res) => {
     const child = ownedChild(ctx, req, String(req.params.id));
     const rows = db.all<{ id: string; name: string; created_at: number; last_seen: number | null }>(
@@ -116,6 +129,21 @@ export function parentRoutes(ctx: AppContext): Router {
     if (!result.changes) throw new HttpError(404, 'Cihaz bulunamadı');
     logSecurity(ctx, req, req.parent!.id, 'device_removed');
     res.json({ ok: true });
+  });
+
+  /** Bu sunucuya yerel ağdan erişim adresleri (telefon vb. için). */
+  r.get('/server-info', (req, res) => {
+    const port = req.socket.localPort ?? config.port;
+    const listensAll = config.host === '0.0.0.0' || config.host === '::';
+    const urls: string[] = [];
+    if (listensAll) {
+      for (const list of Object.values(networkInterfaces())) {
+        for (const n of list ?? []) {
+          if (n.family === 'IPv4' && !n.internal) urls.push(`http://${n.address}:${port}`);
+        }
+      }
+    }
+    res.json({ port, lanUrls: urls });
   });
 
   /* ---- Ayarlar ---- */

@@ -209,6 +209,37 @@ describe('eşleştirme ve ajan akışı', () => {
   });
 });
 
+describe('eşleşmeyi kaldırma kodu', () => {
+  it('çocuk cihazı yalnızca ebeveynin kodu ile eşleşmeyi kaldırabilir', async () => {
+    const p = await register('kaldir-ebeveyn');
+    const token = p.body.accessToken;
+    const child = await agent().post('/api/children').set(auth(token)).send({ name: 'Ayşe' });
+    const code = await agent().post(`/api/children/${child.body.id}/pairing-code`).set(auth(token));
+    const pair = await agent().post('/api/agent/pair').send({ code: code.body.code });
+    const dev = auth(pair.body.deviceToken);
+
+    expect((await agent().post('/api/agent/unpair').set(dev).send({ code: '123456' })).status).toBe(403);
+    expect((await agent().get('/api/agent/settings').set(dev)).status).toBe(200);
+
+    const un = await agent().post(`/api/children/${child.body.id}/unpair-code`).set(auth(token));
+    expect(un.body.code).toMatch(/^\d{6}$/);
+    expect((await agent().post('/api/agent/unpair').set(dev).send({ code: un.body.code })).status).toBe(200);
+    expect((await agent().get('/api/agent/settings').set(dev)).status).toBe(401);
+  });
+
+  it('başka ebeveyn kaldırma kodu üretemez; ayarlarda autostart varsayılan açık', async () => {
+    const a = await register('kaldir-a');
+    const b = await register('kaldir-b');
+    const child = await agent().post('/api/children').set(auth(a.body.accessToken)).send({ name: 'Mert' });
+    expect((await agent().post(`/api/children/${child.body.id}/unpair-code`).set(auth(b.body.accessToken))).status).toBe(404);
+    const st = await agent().get(`/api/children/${child.body.id}/settings`).set(auth(a.body.accessToken));
+    expect(st.body.autostart).toBe(true);
+    const info = await agent().get('/api/server-info').set(auth(a.body.accessToken));
+    expect(info.status).toBe(200);
+    expect(Array.isArray(info.body.lanUrls)).toBe(true);
+  });
+});
+
 describe('sohbet güvenlik filtresi ve AI ayarları', () => {
   it('AI kapalıyken sohbet 503; tehlikeli mesaj ebeveyne olay düşer', async () => {
     const p = await register('sohbet-ebeveyn');

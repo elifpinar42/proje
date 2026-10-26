@@ -5,7 +5,6 @@ import { join } from 'node:path';
 export interface StoredConfig {
   serverMode: 'embedded' | 'remote';
   serverUrl: string;
-  lanAccess: boolean;
   deviceToken: string | null;
   childName: string;
   consentAccepted: boolean;
@@ -14,7 +13,6 @@ export interface StoredConfig {
 const DEFAULTS: StoredConfig = {
   serverMode: 'embedded',
   serverUrl: '',
-  lanAccess: false,
   deviceToken: null,
   childName: '',
   consentAccepted: false,

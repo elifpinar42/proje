@@ -65,7 +65,7 @@ export function createServer(options: ServerOptions): RunningServer {
   app.use(cookieParser());
 
   app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', version: '2.0.1', time: Date.now() });
+    res.json({ status: 'ok', version: '2.0.2', time: Date.now() });
   });
   app.use('/api/auth', authRoutes(ctx));
   app.use('/api/agent', agentRoutes(ctx));
@@ -76,9 +76,19 @@ export function createServer(options: ServerOptions): RunningServer {
 
   if (config.webDir) {
     const webDir = config.webDir;
-    app.use(express.static(webDir, { index: 'index.html', maxAge: '1h' }));
+    app.use(
+      express.static(webDir, {
+        index: 'index.html',
+        // Hash'li dosyalar uzun süre önbelleğe alınır; index.html asla (güncelleme anında görünsün).
+        setHeaders(res, filePath) {
+          if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+          else res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        },
+      }),
+    );
     app.use((req, res, next) => {
       if (req.method !== 'GET') return next();
+      res.setHeader('Cache-Control', 'no-cache');
       res.sendFile(join(webDir, 'index.html'));
     });
   }

@@ -6,8 +6,9 @@ import {
   eventSchema,
   heartbeatSchema,
   pairSchema,
+  unpairSchema,
 } from '@dr/shared';
-import { type AppContext, HttpError, requireDevice } from '../context';
+import { type AppContext, HttpError, logSecurity, requireDevice } from '../context';
 import { newId, randomToken, sha256 } from '../security';
 import { CHILD_SYSTEM_PROMPT, isAiEnabled, providerFor } from '../services/ai';
 import { loadSettings } from './parent';
@@ -58,6 +59,24 @@ export function agentRoutes(ctx: AppContext): Router {
   });
 
   r.use(requireDevice(ctx));
+
+  /** Çocuk cihazı eşleşmeyi yalnızca ebeveynin verdiği kodla kaldırabilir. */
+  r.post('/unpair', pairLimiter, (req, res) => {
+    const { childId, parentId, id } = req.device!;
+    const { code } = unpairSchema.parse(req.body);
+    const row = db.get<{ expires_at: number }>(
+      'SELECT expires_at FROM unpair_codes WHERE code = ? AND child_id = ?',
+      code,
+      childId,
+    );
+    if (!row || row.expires_at < Date.now()) throw new HttpError(403, 'Kod geçersiz veya süresi dolmuş');
+    db.transaction(() => {
+      db.run('DELETE FROM unpair_codes WHERE child_id = ?', childId);
+      db.run('DELETE FROM devices WHERE id = ?', id);
+    });
+    logSecurity(ctx, req, parentId, 'device_unpaired_with_code');
+    res.json({ ok: true });
+  });
 
   r.get('/settings', (req, res) => {
     const { childId, parentId } = req.device!;

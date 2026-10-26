@@ -41,6 +41,7 @@ interface AgentEvents {
   change: [];
   guidance: [Guidance];
   unpaired: [];
+  settings: [ChildSettings];
 }
 
 /** Çocuk cihazındaki ajan: izleme modülleri → risk motoru → sunucu. */
@@ -147,6 +148,16 @@ export class Agent extends EventEmitter<AgentEvents> {
     this.emit('change');
   }
 
+  /** Eşleşme yalnızca ebeveynin panelden verdiği kodla kaldırılabilir. */
+  async unpairWithCode(code: string): Promise<{ ok: boolean; error?: string }> {
+    const res = await this.call('/unpair', { method: 'POST', body: { code } });
+    if (!res) return this.store.get().deviceToken ? { ok: false, error: 'Sunucuya ulaşılamıyor.' } : { ok: true };
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    if (!res.ok) return { ok: false, error: body.error ?? 'Kod kabul edilmedi' };
+    this.unpair();
+    return { ok: true };
+  }
+
   /* ---- Sunucu iletişimi ---- */
 
   private async call(path: string, init: { method?: string; body?: unknown } = {}): Promise<Response | null> {
@@ -189,6 +200,7 @@ export class Agent extends EventEmitter<AgentEvents> {
   private applySettings(next: ChildSettings): void {
     const prev = this.settings;
     this.settings = next;
+    this.emit('settings', next);
     if (!prev || prev.screenEnabled !== next.screenEnabled) {
       if (next.screenEnabled) this.windowMon.start();
       else this.windowMon.stop();

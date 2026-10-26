@@ -12,7 +12,9 @@
 
 Şifrenizi unuttuysanız: giriş ekranında **“Şifremi unuttum”** → kullanıcı adı + bir kurtarma kodu + yeni şifre. (İki adımlı doğrulama da kapatılır.)
 
-Telefondan kullanım: panel mobil uyumludur. Yerel ağdan erişim için bkz. [KURULUM.md](KURULUM.md).
+Telefondan kullanım: panel mobil uyumludur (yan menü bir çekmece olarak açılır). Yerel ağ adresi **Çocuklar** sayfasında görünür; bkz. [KURULUM.md](KURULUM.md).
+
+**Eşleşmeyi kaldırma:** çocuk, kendi bilgisayarında eşleşmeyi yalnızca sizin *Çocuklar → Eşleşmeyi kaldırma kodu üret* ile verdiğiniz kodla kaldırabilir. Kod 10 dakika geçerli ve tek kullanımlıktır.
 
 ## Çocuk için
 

@@ -28,6 +28,7 @@
 | XSS | Panel ve çocuk arayüzü React (kaçışlı); `innerHTML` yok; sıkı CSP (`script-src 'self'`) |
 | Electron’dan sistem erişimi | `contextIsolation`, `nodeIntegration:false`, `sandbox:true`; dar `contextBridge` API’si; IPC gönderen doğrulaması; yalnızca kendi arayüzüne kamera/mikrofon izni; pencere açma/gezinme engellenir |
 | CORS | Varsayılan olarak aynı origin; yalnızca `ALLOWED_ORIGINS` listesindeki origin’lere izin |
+| Çocuğun eşleşmeyi kaldırması | Cihaz tarafında kaldırma, ebeveynin ürettiği tek kullanımlık 6 haneli kodu gerektirir (sunucuda doğrulanır) |
 | Ağdaki dinleme | Yerel ağda düz HTTP kullanılırsa trafik şifresizdir → internete HTTPS ile açın |
 | Eşleştirme kodunu tahmin | 6 hane, 10 dk, tek kullanımlık, `/agent/pair` için 15 dk’da 10 deneme sınırı |
 

@@ -7,14 +7,15 @@
    - **Bu bilgisayardaki yerel sunucu (varsayılan):** panel `http://localhost:3737` adresinde açılır.
    - **Uzak sunucu:** Docker/VPS üzerindeki sunucunun adresi (ör. `https://rehberlik.ornek.com`).
 3. Ebeveyn panelinden aldığınız 6 haneli kodu girin; çocuğa gösterilen açıklamayı onaylayın.
-4. Uygulama kapatılınca sistem tepsisinde çalışmaya devam eder. “Ayarlar → Bilgisayar açılınca otomatik başlat” ile oturum açılışında gizli başlar.
+4. Uygulama kapatılınca sistem tepsisinde çalışmaya devam eder. Otomatik başlatma çocuk uygulamasında değil, **ebeveyn panelinde** (Ayarlar → izinler) yönetilir.
+5. Çocuk cihazındaki eşleşmeyi kaldırmak için ebeveyn panelinde **Çocuklar → Eşleşmeyi kaldırma kodu üret** ile alınan 6 haneli kod gerekir.
 
 Veri klasörü: `%APPDATA%\Dijital Rehberlik\data\` (`config.json`, `queue.db`, gömülü sunucuda `server\dijital-rehberlik.db` ve `server\secrets.json`).
 
 ### Yerel ağdan (telefondan) panele erişim
 
-Masaüstü uygulamasında **Ayarlar → “Ebeveyn panelini yerel ağdan erişilebilir yap”**’ı açın. Uygulama panelin ağ adresini (`http://192.168.x.x:3737`) gösterir; telefondan o adresi açın. Windows güvenlik duvarı izin sorarsa “Özel ağlar”a izin verin.
-> Düz HTTP üzerinden yalnızca güvendiğiniz ev ağında kullanın.
+Gömülü yerel sunucu **her zaman yerel ağa açıktır** (`0.0.0.0:3737`). Panelde **Çocuklar** sayfasındaki “Telefondan erişim” kartı ağ adresini (`http://192.168.x.x:3737`) gösterir; telefondan o adresi açın. Windows güvenlik duvarı izin sorarsa “Özel ağlar”a izin verin.
+> Düz HTTP kullanıldığı için yalnızca güvendiğiniz ev ağında kullanın; panele giriş şifre (ve isteğe bağlı 2FA) ile korunur.
 
 ## 2. Sunucu — Docker
 
