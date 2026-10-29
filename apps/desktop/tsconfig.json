@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node", "vite/client"],
+    "baseUrl": "../..",
+    "paths": { "@dr/shared": ["packages/shared/src/index.ts"], "@dr/server": ["apps/server/src/index.ts"] }
+  },
+  "include": ["src", "electron.vite.config.ts"]
+}

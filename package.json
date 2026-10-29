@@ -1,30 +1,34 @@
 {
-  "name": "proje",
-  "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
+  "name": "dijital-rehberlik",
+  "version": "2.0.3",
+  "private": true,
+  "type": "module",
+  "description": "Çocuklar için dijital rehberlik ve güvenlik sistemi",
+  "workspaces": ["apps/*", "packages/*"],
+  "engines": { "node": ">=24" },
   "scripts": {
-    "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "@tensorflow/tfjs": "^4.22.0",
-    "active-win": "^8.2.1",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "face-api.js": "^0.22.2",
-    "global-key-listener": "^1.0.2",
-    "mic": "^2.1.2",
-    "nedb": "^1.8.0",
-    "node-mic": "^1.0.1",
-    "node-notifier": "^10.0.1",
-    "node-record-lpcm16": "^1.0.1"
+    "dev": "concurrently -n server,web,desktop -c blue,green,magenta \"npm:dev:server\" \"npm:dev:web\" \"npm:dev:desktop\"",
+    "dev:server": "npm run dev -w @dr/server",
+    "dev:web": "npm run dev -w @dr/web",
+    "dev:desktop": "npm run dev -w @dr/desktop",
+    "build": "npm run build -w @dr/web && npm run build -w @dr/server && npm run build -w @dr/desktop",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "dist:win": "npm run build && npm run dist:win -w @dr/desktop",
+    "docker:build": "docker build -t dijital-rehberlik-server ."
   },
   "devDependencies": {
-    "electron": "^43.1.0"
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^24.0.0",
+    "@types/supertest": "^6.0.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.3.0",
+    "supertest": "^7.0.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
   }
 }

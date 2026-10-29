@@ -1,0 +1,521 @@
+import { useEffect, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
+import { EMOTIONS, EMOTION_LABELS } from '@dr/shared';
+import type { AppState, Guidance } from '../../common/types';
+import { mediaErrorText, requestMediaAccess, startCamera, startMic, type AccessResult, type Stopper } from './vision';
+
+const EMOJI: Record<string, string> = {
+  neutral: '😐',
+  happy: '😃',
+  sad: '😢',
+  angry: '😠',
+  fearful: '😨',
+  disgusted: '🤢',
+  surprised: '😲',
+};
+
+export function App() {
+  const [state, setState] = useState<AppState | null>(null);
+  const [guidance, setGuidance] = useState<Guidance | null>(null);
+
+  useEffect(() => {
+    void window.agent.getState().then(setState);
+    const offState = window.agent.onState(setState);
+    const offGuide = window.agent.onGuidance(setGuidance);
+    return () => {
+      offState();
+      offGuide();
+    };
+  }, []);
+
+  if (!state) return <div className="center muted">Yükleniyor…</div>;
+
+  return (
+    <>
+      {state.phase === 'setup' && <Setup state={state} />}
+      {state.phase === 'consent' && <Consent state={state} />}
+      {state.phase === 'running' && <Running state={state} />}
+      {guidance && (
+        <div className="overlay" role="dialog" aria-modal="true" aria-label={guidance.title}>
+          <div className="modal">
+            <div className="big">🌿</div>
+            <h2>{guidance.title}</h2>
+            <p>{guidance.description}</p>
+            <button className="btn" autoFocus onClick={() => setGuidance(null)}>
+              Tamam
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ---- İlk kurulum ---- */
+
+function Setup({ state }: { state: AppState }) {
+  const [mode, setMode] = useState<'embedded' | 'remote'>(state.serverMode);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    setBusy(true);
+    setError('');
+    const res = await window.agent.pair({
+      mode,
+      serverUrl: String(f.get('url') ?? ''),
+      code: String(f.get('code') ?? ''),
+    });
+    setBusy(false);
+    if (!res.ok) setError(res.error ?? 'Eşleştirme başarısız');
+  }
+
+  return (
+    <main className="page">
+      <h1>🛡️ Dijital Rehberlik</h1>
+      <p className="muted">Bu bilgisayarı ebeveyn paneline bağlayalım.</p>
+      <form className="card stack" onSubmit={submit}>
+        <fieldset className="stack" style={{ border: 0, padding: 0 }}>
+          <legend>Sunucu</legend>
+          <label className="radio">
+            <input type="radio" checked={mode === 'embedded'} onChange={() => setMode('embedded')} />
+            <span>
+              <strong>Bu bilgisayardaki yerel sunucu</strong>
+              <br />
+              <span className="muted small">Varsayılan. Ebeveyn paneli bu bilgisayarda ve yerel ağdaki telefonlardan da erişilebilir.</span>
+            </span>
+          </label>
+          <label className="radio">
+            <input type="radio" checked={mode === 'remote'} onChange={() => setMode('remote')} />
+            <span>
+              <strong>Uzak sunucu</strong>
+              <br />
+              <span className="muted small">Başka bir yerde çalışan sunucuya (ör. VPS/Docker) bağlanın.</span>
+            </span>
+          </label>
+        </fieldset>
+
+        {mode === 'remote' ? (
+          <label className="field">
+            Sunucu adresi
+            <input name="url" type="url" required placeholder="https://rehberlik.ornek.com" />
+          </label>
+        ) : (
+          <div className="alert info">
+            Önce ebeveyn panelini açıp hesap oluşturun, çocuk profili ekleyin ve “Eşleştirme kodu” alın.
+            <div style={{ marginTop: 8 }}>
+              <button type="button" className="btn ghost small" onClick={() => void window.agent.openPanel()} disabled={state.panelUrls.length === 0}>
+                Ebeveyn panelini aç
+              </button>
+            </div>
+          </div>
+        )}
+
+        <label className="field">
+          6 haneli eşleştirme kodu
+          <input name="code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoComplete="off" className="code" />
+        </label>
+        {(error || state.lastError) && <div className="alert error">{error || state.lastError}</div>}
+        <button className="btn" disabled={busy}>
+          {busy ? 'Eşleştiriliyor…' : 'Eşleştir'}
+        </button>
+      </form>
+    </main>
+  );
+}
+
+/* ---- Çocuğa açıklama / rıza ---- */
+
+function Consent({ state }: { state: AppState }) {
+  const s = state.settings;
+  const [access, setAccess] = useState<AccessResult | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  // Kamera/mikrofon izni en başta, ilk açılışta alınır.
+  async function start() {
+    setChecking(true);
+    const res = await requestMediaAccess(!!s?.cameraEnabled, !!s?.micEnabled);
+    setChecking(false);
+    setAccess(res);
+    if (!res.camera && !res.mic) await window.agent.acceptConsent();
+  }
+  const items: [boolean | undefined, string][] = [
+    [true, 'Bilgisayarı ne kadar süre kullandığın (yalnızca süre).'],
+    [s?.screenEnabled, 'Açık pencerelerinin başlıkları (kumar, şiddet, kendine zarar gibi uygunsuz içerik var mı diye bakılır). Ekran görüntüsü alınmaz.'],
+    [s?.keyboardEnabled, 'Ne kadar hızlı tuşladığın. Yazdığın harfler kaydedilmez.'],
+    [s?.cameraEnabled, 'Kameradan yüz ifaden (mutlu, üzgün gibi). Görüntü bilgisayarından çıkmaz.'],
+    [s?.micEnabled, 'Mikrofondan ortamın ses yüksekliği. Ses kaydedilmez.'],
+  ];
+  return (
+    <main className="page">
+      <h1>Merhaba {state.childName} 👋</h1>
+      <p>Bu uygulama, internette güvende olman için anne babanla birlikte çalışır. Şunları yapar:</p>
+      <ul className="card list">
+        {items
+          .filter(([on]) => on)
+          .map(([, text]) => (
+            <li key={text}>✅ {text}</li>
+          ))}
+      </ul>
+      <p className="muted small">
+        Tehlikeli bir durum olursa anne veya baban bilgilendirilir. Şifrelerin, mesajların ve yazdıkların kaydedilmez. İstediğin zaman anne babana
+        sorabilirsin.
+      </p>
+      {access && (access.camera || access.mic) && (
+        <div className="alert error stack">
+          {access.camera && <div>Kamera: {access.camera}</div>}
+          {access.mic && <div>Mikrofon: {access.mic}</div>}
+          <div className="small">
+            Windows Ayarları → Gizlilik’te “Masaüstü uygulamalarının kameranıza/mikrofonunuza erişmesine izin ver” seçeneğini açın, sonra tekrar deneyin.
+          </div>
+          <div className="row">
+            {access.camera && (
+              <button className="btn ghost small" onClick={() => void window.agent.openPrivacy('camera')}>
+                Kamera ayarlarını aç
+              </button>
+            )}
+            {access.mic && (
+              <button className="btn ghost small" onClick={() => void window.agent.openPrivacy('microphone')}>
+                Mikrofon ayarlarını aç
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+      <div className="row">
+        <button className="btn" disabled={checking} onClick={start}>
+          {checking ? 'İzinler kontrol ediliyor…' : access && (access.camera || access.mic) ? 'Tekrar dene' : 'İzinleri ver ve başlat'}
+        </button>
+        {access && (access.camera || access.mic) && (
+          <button className="btn ghost" onClick={() => void window.agent.acceptConsent()}>
+            İzinsiz devam et
+          </button>
+        )}
+      </div>
+    </main>
+  );
+}
+
+/* ---- Çalışma ekranı ---- */
+
+function Running({ state }: { state: AppState }) {
+  const [tab, setTab] = useState<'status' | 'chat'>('status');
+  const [camError, setCamError] = useState('');
+  const [micError, setMicError] = useState('');
+  const s = state.settings;
+
+  // Kamera ve mikrofon yalnızca ebeveyn izin verdiğinde açılır.
+  const cameraOn = !!s?.cameraEnabled;
+  const micOn = !!s?.micEnabled;
+  // Kamera/mikrofon başka uygulamada kullanılıyorsa 10 sn'de bir otomatik tekrar denenir.
+  useEffect(() => {
+    if (!cameraOn) {
+      setCamError('');
+      return;
+    }
+    let stopper: Stopper | null = null;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const attempt = () => {
+      startCamera((r) => window.agent.sendEmotion(r))
+        .then((st) => {
+          if (cancelled) st.stop();
+          else {
+            stopper = st;
+            setCamError('');
+          }
+        })
+        .catch((e) => {
+          setCamError(mediaErrorText(e, 'Kamera'));
+          if (!cancelled) timer = setTimeout(attempt, 10_000);
+        });
+    };
+    attempt();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      stopper?.stop();
+    };
+  }, [cameraOn]);
+  useEffect(() => {
+    if (!micOn) {
+      setMicError('');
+      return;
+    }
+    let stopper: Stopper | null = null;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const attempt = () => {
+      startMic((level) => window.agent.sendAudioLevel(level))
+        .then((st) => {
+          if (cancelled) st.stop();
+          else {
+            stopper = st;
+            setMicError('');
+          }
+        })
+        .catch((e) => {
+          setMicError(mediaErrorText(e, 'Mikrofon'));
+          if (!cancelled) timer = setTimeout(attempt, 10_000);
+        });
+    };
+    attempt();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      stopper?.stop();
+    };
+  }, [micOn]);
+
+  const active = [
+    ['Süre', true],
+    ['Pencere', s?.screenEnabled],
+    ['Klavye hızı', s?.keyboardEnabled],
+    ['Kamera', s?.cameraEnabled],
+    ['Mikrofon', s?.micEnabled],
+  ] as const;
+
+  return (
+    <main className="page">
+      <header className="row between">
+        <div>
+          <h1 style={{ marginBottom: 2 }}>Merhaba {state.childName}!</h1>
+          <span className={`badge ${state.online ? 'ok' : 'warn'}`}>{state.online ? 'Bağlı' : 'Bağlantı yok'}</span>
+        </div>
+        <span className="emoji-lg" aria-hidden>
+          {EMOJI[state.riskState.emotion]}
+        </span>
+      </header>
+
+      {state.aiEnabled && (
+        <div className="tabs" role="tablist">
+          <button role="tab" aria-selected={tab === 'status'} className={`btn small ${tab === 'status' ? '' : 'ghost'}`} onClick={() => setTab('status')}>
+            Durum
+          </button>
+          <button role="tab" aria-selected={tab === 'chat'} className={`btn small ${tab === 'chat' ? '' : 'ghost'}`} onClick={() => setTab('chat')}>
+            Asistan
+          </button>
+        </div>
+      )}
+
+      {(camError || micError) && (
+        <div className="alert error stack">
+          {camError && <div>{camError}</div>}
+          {micError && <div>{micError}</div>}
+          <div className="row">
+            <button className="btn ghost small" onClick={() => void window.agent.openPrivacy('camera')}>
+              Kamera ayarlarını aç
+            </button>
+            <button className="btn ghost small" onClick={() => void window.agent.openPrivacy('microphone')}>
+              Mikrofon ayarlarını aç
+            </button>
+          </div>
+        </div>
+      )}
+
+      {tab === 'chat' && state.aiEnabled ? (
+        <Chat />
+      ) : (
+        <>
+          <section className="card stack" aria-label="İzlenen bilgiler">
+            <h2>Şu an neler izleniyor?</h2>
+            <div className="row">
+              {active.map(([label, on]) => (
+                <span key={label} className={`badge ${on ? 'ok' : ''}`}>
+                  {on ? '●' : '○'} {label}
+                </span>
+              ))}
+            </div>
+            <p className="muted small">Bu ayarları anne baban belirler. Kamera ve mikrofon görüntü/ses kaydetmez.</p>
+          </section>
+
+          {s?.cameraEnabled && (
+            <section className="card stack" aria-label="Duygu durumu">
+              <h2>Duygu durumun</h2>
+              {Object.keys(state.expressions).length === 0 ? (
+                <p className="muted small">Yüzün görünmüyor.</p>
+              ) : (
+                EMOTIONS.map((e) => (
+                  <div key={e} className="bar-row">
+                    <span>
+                      {EMOJI[e]} {EMOTION_LABELS[e]}
+                    </span>
+                    <div className="bar">
+                      <div style={{ width: `${state.expressions[e] ?? 0}%` }} />
+                    </div>
+                    <span className="muted small">%{state.expressions[e] ?? 0}</span>
+                  </div>
+                ))
+              )}
+            </section>
+          )}
+
+          {state.serverMode === 'embedded' && state.panelUrls.length > 0 && (
+            <section className="card stack" aria-label="Ebeveyn paneli adresleri">
+              <h2>Ebeveyn paneli</h2>
+              <p className="muted small">Anne veya baban panele bu adreslerden girer (aynı Wi-Fi ağındaki telefonlar dahil):</p>
+              {state.panelUrls.map((u) => (
+                <code key={u}>{u}</code>
+              ))}
+              <button className="btn ghost small" style={{ alignSelf: 'flex-start' }} onClick={() => void window.agent.openPanel()}>
+                Paneli aç
+              </button>
+            </section>
+          )}
+
+          <UnpairBox isDev={state.isDev} />
+        </>
+      )}
+    </main>
+  );
+}
+
+/* ---- Eşleşmeyi kaldırma (ebeveyn kodu gerekir) ---- */
+
+function UnpairBox({ isDev }: { isDev: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const code = String(new FormData(e.currentTarget).get('code') ?? '');
+    setBusy(true);
+    setError('');
+    const res = await window.agent.unpair(code);
+    setBusy(false);
+    if (!res.ok) setError(res.error ?? 'Kod kabul edilmedi');
+  }
+
+  return (
+    <section className="card stack" aria-label="Eşleşmeyi kaldır">
+      {!open ? (
+        <button className="btn ghost small" style={{ alignSelf: 'flex-start' }} onClick={() => setOpen(true)}>
+          Eşleşmeyi kaldır
+        </button>
+      ) : (
+        <form className="stack" onSubmit={submit}>
+          <p className="muted small">Bu bilgisayarın eşleşmesini kaldırmak için anne veya babanın ebeveyn panelinden ürettiği 6 haneli kodu gir.</p>
+          <input name="code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoComplete="off" className="code" aria-label="Ebeveyn kodu" />
+          {error && <div className="alert error">{error}</div>}
+          <div className="row">
+            <button className="btn small" disabled={busy}>
+              Kaldır
+            </button>
+            <button type="button" className="btn ghost small" onClick={() => setOpen(false)}>
+              Vazgeç
+            </button>
+          </div>
+        </form>
+      )}
+      {isDev && (
+        <div className="row">
+          <button className="btn ghost small" onClick={() => void window.agent.devSimulate('risk')}>
+            [Geliştirme] Riskli durum
+          </button>
+          <button className="btn ghost small" onClick={() => void window.agent.devSimulate('clear')}>
+            [Geliştirme] Sıfırla
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ---- Asistan sohbeti ---- */
+
+interface Msg {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+function Chat() {
+  const [msgs, setMsgs] = useState<Msg[]>([{ role: 'assistant', content: 'Merhaba! Ben Rehber. Merak ettiğin bir şeyi bana sorabilirsin.' }]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const endRef = useRef<HTMLDivElement>(null);
+  const [listening, setListening] = useState(false);
+  const [text, setText] = useState('');
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ block: 'end' });
+  }, [msgs]);
+
+  async function send(e?: FormEvent) {
+    e?.preventDefault();
+    const message = text.trim();
+    if (!message || busy) return;
+    setText('');
+    setError('');
+    const history = msgs.slice(1).slice(-10);
+    setMsgs((m) => [...m, { role: 'user', content: message }]);
+    setBusy(true);
+    const res = await window.agent.chat(message, history);
+    setBusy(false);
+    if (res.ok && res.reply) setMsgs((m) => [...m, { role: 'assistant', content: res.reply! }]);
+    else setError(res.error ?? 'Asistan yanıt veremedi');
+  }
+
+  function speak(t: string) {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = 'tr-TR';
+    speechSynthesis.speak(u);
+  }
+
+  const Recognition = (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognitionLike }).webkitSpeechRecognition;
+  function listen() {
+    if (!Recognition) return;
+    const r = new Recognition();
+    r.lang = 'tr-TR';
+    r.onresult = (ev) => setText(ev.results[0][0].transcript);
+    r.onerror = () => {
+      setListening(false);
+      setError('Sesle yazma bu bilgisayarda çalışmadı. Klavyeyle yazabilirsin.');
+    };
+    r.onend = () => setListening(false);
+    setListening(true);
+    r.start();
+  }
+
+  return (
+    <section className="card chat" aria-label="Asistan sohbeti">
+      <div className="messages" aria-live="polite">
+        {msgs.map((m, i) => (
+          <div key={i} className={`msg ${m.role}`}>
+            {m.content}
+            {m.role === 'assistant' && (
+              <button className="link" aria-label="Sesli oku" onClick={() => speak(m.content)}>
+                🔊
+              </button>
+            )}
+          </div>
+        ))}
+        {busy && <div className="msg assistant muted">Yazıyor…</div>}
+        <div ref={endRef} />
+      </div>
+      {error && <div className="alert error">{error}</div>}
+      <form className="row" onSubmit={send}>
+        <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Bir şey sor…" maxLength={1000} aria-label="Mesajın" />
+        {Recognition && (
+          <button type="button" className="btn ghost" onClick={listen} disabled={listening} aria-label="Sesle yaz">
+            🎤
+          </button>
+        )}
+        <button className="btn" disabled={busy || !text.trim()}>
+          Gönder
+        </button>
+      </form>
+    </section>
+  );
+}
+
+interface SpeechRecognitionLike {
+  lang: string;
+  onresult: (ev: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
+  onerror: () => void;
+  onend: () => void;
+  start(): void;
+}

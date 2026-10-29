@@ -1,0 +1,8 @@
+node_modules
+dist
+out
+release
+models
+legacy
+proje-analiz.html
+package-lock.json

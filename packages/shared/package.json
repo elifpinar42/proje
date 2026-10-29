@@ -1,0 +1,10 @@
+{
+  "name": "@dr/shared",
+  "version": "2.0.3",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": { "typecheck": "tsc -p tsconfig.json" },
+  "dependencies": { "zod": "^3.23.8" }
+}

@@ -1,0 +1,19 @@
+services:
+  dijital-rehberlik:
+    build: .
+    image: dijital-rehberlik-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # HTTPS arkasında (nginx/Caddy) çalıştırıyorsanız ikisini de true yapın.
+      SECURE_COOKIES: "false"
+      TRUST_PROXY: "false"
+      ALLOW_REGISTRATION: "true"
+      # Panele farklı bir origin'den erişilecekse virgülle ayırarak yazın:
+      # ALLOWED_ORIGINS: "https://panel.ornek.com"
+      # JWT_SECRET ve ENCRYPTION_KEY verilmezse ilk açılışta rastgele üretilip /data içine yazılır.
+    volumes:
+      - dr-data:/data
+volumes:
+  dr-data:
